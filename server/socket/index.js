@@ -95,7 +95,7 @@ module.exports = http => {
 				const sender = getUser(user.id);
 				try {
 					const message = await addMessage(
-						sender.userId,
+						user.id,
 						conversationId,
 						text,
 						image,
@@ -118,10 +118,10 @@ module.exports = http => {
 							});
 						}
 					});
-					io.to(sender.socketId).emit("getUpdatedConvo", {
+					io.to(socket.id).emit("getUpdatedConvo", {
 						convo: updatedConvo,
 					});
-					io.to(sender.socketId).emit("getMessageStatus", {
+					io.to(socket.id).emit("getMessageStatus", {
 						ok: true,
 						message,
 						tempId,
@@ -131,10 +131,10 @@ module.exports = http => {
 						conversationId,
 						user.id
 					);
-					io.to(sender.socketId).emit("updateLastSeen", { lastSeen });
+					io.to(socket.id).emit("updateLastSeen", { lastSeen });
 				} catch (err) {
 					console.log("error: ", err);
-					io.to(sender.socketId).emit("getMessageStatus", {
+					io.to(socket.id).emit("getMessageStatus", {
 						ok: false,
 						errMsg: "Something went wrong",
 						err,
@@ -156,7 +156,6 @@ module.exports = http => {
 		socket.on(
 			"updateMessage",
 			async ({ messageId, members, text, image }) => {
-				const sender = getUser(user.id);
 				try {
 					const updatedMessage = await updateMessage(
 						messageId,
@@ -172,15 +171,14 @@ module.exports = http => {
 							});
 						}
 					});
-
-					io.to(sender.socketId).emit("getUpdateMessageStatus", {
+					io.to(socket.socketId).emit("getUpdateMessageStatus", {
 						ok: true,
 						message: updatedMessage,
 						messageId,
 					});
 				} catch (err) {
 					console.log(err);
-					io.to(sender.socketId).emit("getMessageStatus", {
+					io.to(socket.socketId).emit("getMessageStatus", {
 						ok: false,
 						errMsg: "Something went wrong",
 						err,
