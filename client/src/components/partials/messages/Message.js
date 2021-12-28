@@ -297,7 +297,9 @@ const Message = forwardRef(
 							me && "flex-row-reverse"
 						} flex gap-2 items-center`}>
 						<img
-							src={`${process.env.REACT_APP_API_URL}/${m.sender.profilePic}`}
+							src={`${process.env.REACT_APP_API_URL}/${
+								temp ? user.profilePic : m.sender.profilePic
+							}`}
 							alt=""
 							className="h-5 w-5 object-cover rounded-full"
 						/>
