@@ -12,12 +12,14 @@ import Button from "../../Button";
 import Spinner from "../../Spinner";
 import { updateConversation, leaveGroup } from "../../../api/conversations";
 import Menu from "../../Menu";
+import { useAuth } from "./../../../context/AuthContext";
 
 const ConversationHeader = ({ convo }) => {
 	const { call, answerCall } = useVideo();
 	const { updateConvo, removeConvo } = useOutletContext();
 	const navigate = useNavigate();
 	const { id } = useParams();
+	const { user } = useAuth();
 
 	const targetRef = useRef(null);
 
@@ -34,6 +36,9 @@ const ConversationHeader = ({ convo }) => {
 		removeConvo(convo._id);
 		navigate("/messages");
 	};
+	// For dms only
+	const sender =
+		!convo?.isGroup && convo?.members?.find(x => x._id !== user.id);
 	// TODO: refactor
 	return (
 		<div className="flex justify-between items-center py-8 group">
@@ -184,7 +189,7 @@ const ConversationHeader = ({ convo }) => {
 					src={`${process.env.REACT_APP_API_URL}/${
 						convo?.isGroup
 							? convo.groupImg ?? "group.jpg"
-							: convo?.members[0]?.profilePic ?? "default.jpg"
+							: sender?.profilePic ?? "default.jpg"
 					}`}
 					alt=""
 					className="rounded-full w-10 h-10 object-cover aspect-square shrink-0"
@@ -194,7 +199,7 @@ const ConversationHeader = ({ convo }) => {
 						<h4 className="font-bold text-xl line-clamp-1">
 							{convo?.isGroup
 								? convo?.groupName
-								: convo?.members[0]?.username}
+								: sender?.username}
 						</h4>
 						<p className="line-clamp-1 text-sm text-gray-700">
 							Online

@@ -369,7 +369,7 @@ module.exports = http => {
 		socket.on("disconnecting", async _ => {
 			[...socket.rooms].forEach(room => {
 				if (isValidObjectId(room)) {
-					io.sockets.adapter.rooms.get(room).size <= 2
+					io.sockets.adapter.rooms.get(room).size <= 1
 						? endCall(socket, room)
 						: io.to(room).emit("userLeft", { leaverId: socket.id });
 				}
