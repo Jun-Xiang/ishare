@@ -7,7 +7,7 @@ router.get("/:id", auth, async (req, res) => {
 	const postId = req.params.id;
 	try {
 		const comments = await CommentModel.find({ post: postId })
-			.sort({ createdAt: -1 })
+			.sort({ createdAt: 1 })
 			.populate("sender");
 		return res.status(200).json({ comments });
 	} catch (err) {

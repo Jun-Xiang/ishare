@@ -264,7 +264,7 @@ module.exports = http => {
 		/**
 		 * Video call
 		 */
-		const endCall = async (socket, convoId) => {
+		const endCall = async convoId => {
 			clearTimeout(timeouts[convoId]);
 			const conversation = await triggerGroupCallEnded(convoId);
 			// io.to(convoId).emit("callEnded", { convo: conversation });
@@ -274,7 +274,10 @@ module.exports = http => {
 			conversation.members.forEach(m => {
 				const member = getUser(m._id.toString());
 				// Me: Send call if member is online
-				if (member) {
+				if (
+					member &&
+					io.sockets.adapter.rooms.get(convoId)?.has(member.socketId)
+				) {
 					io.to(member.socketId).emit("callEnded", {
 						convo: conversation,
 					});
@@ -296,7 +299,7 @@ module.exports = http => {
 			timeouts[convoId] = setTimeout(async () => {
 				// End call
 				console.log("forcefully end call");
-				await endCall(socket, convoId);
+				await endCall(convoId);
 			}, 10000);
 			// Me: Join room
 			socket.join(convoId);
@@ -324,8 +327,13 @@ module.exports = http => {
 			socket.join(convoId);
 			// addToRoom(userId, user.socketId, convoId)
 			// end timeout if more than 1
+			console.log(socket.id, users, user);
+			console.log(io.sockets.adapter.rooms.get(convoId));
 			const clients = io.sockets.adapter.rooms.get(convoId);
-			if (clients.size > 1) clearTimeout(timeouts[convoId]);
+			if (clients.size > 1) {
+				console.log("timeout cleared");
+				clearTimeout(timeouts[convoId]);
+			}
 
 			// Send to new joiner socketId of all users in room
 			socket.emit("joining", {
@@ -353,14 +361,16 @@ module.exports = http => {
 
 		// when user reject
 		socket.on("reject", async ({ members }) => {
-			if (members.length === 1) await endCall(socket, convoId);
+			if (members.length === 1) await endCall(convoId);
 		});
 
 		// when one user disconnects
 		socket.on("leave", async ({ convoId }) => {
+			console.log("convoId???", convoId);
+			console.log(io.sockets.adapter.rooms.get(convoId)?.size);
 			if (io.sockets.adapter.rooms.get(convoId)?.size <= 2) {
 				// End call
-				await endCall(socket, convoId);
+				await endCall(convoId);
 			}
 			socket.leave(convoId);
 			io.to(convoId).emit("userLeft", { leaverId: socket.id });
@@ -370,7 +380,7 @@ module.exports = http => {
 			[...socket.rooms].forEach(room => {
 				if (isValidObjectId(room)) {
 					io.sockets.adapter.rooms.get(room).size <= 1
-						? endCall(socket, room)
+						? endCall(room)
 						: io.to(room).emit("userLeft", { leaverId: socket.id });
 				}
 			});
