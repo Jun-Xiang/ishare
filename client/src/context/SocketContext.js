@@ -1,12 +1,12 @@
-import React, { createContext, useEffect, useRef } from "react";
+import React, { createContext, useEffect, useRef, useContext } from "react";
 import { io } from "socket.io-client";
 
 import { useAuth } from "./AuthContext";
 
-export const SocketContext = createContext();
+const SocketContext = createContext();
 
 const SocketProvider = ({ children }) => {
-	const { auth } = useAuth();
+	const { auth, user } = useAuth();
 	const socketRef = useRef(null);
 
 	useEffect(() => {
@@ -15,8 +15,8 @@ const SocketProvider = ({ children }) => {
 				auth: {
 					token: auth.accessToken,
 				},
+				transports: ["websocket", "polling"],
 			});
-		return () => {};
 	}, [auth]);
 
 	return (
@@ -25,5 +25,7 @@ const SocketProvider = ({ children }) => {
 		</SocketContext.Provider>
 	);
 };
+
+export const useSocket = _ => useContext(SocketContext);
 
 export default SocketProvider;

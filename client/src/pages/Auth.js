@@ -4,7 +4,7 @@ import { Formik, Form, Field } from "formik";
 import * as yup from "yup";
 
 import { useAuth } from "../context/AuthContext";
-import Input from "../components/form/Input";
+import Input from "../components/form/InputWithValidation";
 import Button from "../components/Button";
 
 const Auth = () => {
@@ -71,7 +71,7 @@ const Auth = () => {
 					type="password"
 				/>
 				{isSignIn ? (
-					<p>
+					<p className="text-sm text-gray-600">
 						Don't have an account?{" "}
 						<Button.Text
 							onClick={e => setIsSignIn(false)}
@@ -79,7 +79,7 @@ const Auth = () => {
 						/>
 					</p>
 				) : (
-					<p>
+					<p className="text-sm text-gray-600">
 						Have an account?{" "}
 						<Button.Text
 							onClick={e => setIsSignIn(true)}
@@ -88,6 +88,7 @@ const Auth = () => {
 					</p>
 				)}
 				<Button.Primary
+					className="mt-2"
 					type="submit"
 					text={isSignIn ? "Sign In" : "Register"}
 				/>

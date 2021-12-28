@@ -1,0 +1,241 @@
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import axios, { isCancel } from "axios";
+
+import ConversationPreview from "./ConversationPreview";
+import GroupConversationPreview from "./GroupConversationPreview";
+import { getConversationsReq, createGroup } from "../../../api/conversations";
+import { useSocket } from "../../../context/SocketContext";
+import Modal from "../../Modal";
+import Search from "../Search";
+import Button from "../../Button";
+
+// TODO: try to optimize and remove socket listeners in cleanup function
+
+const History = () => {
+	const { id } = useParams();
+	const navigate = useNavigate();
+	const socket = useSocket();
+
+	const [conversations, setConversations] = useState([]);
+	const [offset, setOffset] = useState(0);
+	const [limit, setLimit] = useState(10);
+	const isMountedRef = useRef(null);
+
+	const updateLastSeen = id => {
+		socket.emit("updateLastSeen", { conversationId: id });
+	};
+
+	useEffect(() => {
+		isMountedRef.current = true;
+		const updateConvo = convo =>
+			isMountedRef.current &&
+			setConversations(prev =>
+				prev
+					.map(c => (c._id === convo._id ? convo : c))
+					.sort((a, b) => b.newMsg - a.newMsg)
+			);
+		const handleGetUpdatedConvo = ({ convo }) => {
+			updateConvo(convo);
+		};
+
+		const handleUpdateLastSeen = ({ lastSeen }) => {
+			isMountedRef.current &&
+				setConversations(prev =>
+					prev.map(c => {
+						if (c._id === lastSeen.conversationId)
+							c.lastSeen = lastSeen.lastSeen;
+						return c;
+					})
+				);
+		};
+
+		// Listen to when group created
+		const handleGroupCreated = ({ convo }) => {
+			isMountedRef.current && setConversations(prev => [convo, ...prev]);
+		};
+
+		// Listen to call created
+		const handleNewCall = ({ convo }) => {
+			console.log("[History]", convo);
+			updateConvo(convo);
+		};
+
+		// Listen to call ended
+		const handleEndCall = ({ convo }) => {
+			console.log("[callEnded]", convo);
+			updateConvo(convo);
+		};
+
+		socket?.on("getUpdatedConvo", handleGetUpdatedConvo);
+		socket?.on("updateLastSeen", handleUpdateLastSeen);
+		socket?.on("groupCreated", handleGroupCreated);
+		socket?.on("newCall", handleNewCall);
+		socket?.on("callEnded", handleEndCall);
+
+		return _ => (isMountedRef.current = false);
+	}, [socket]);
+
+	useEffect(() => {
+		const cancelToken = axios.CancelToken.source();
+		const getConversations = async _ => {
+			getConversationsReq(offset, limit, cancelToken.token)
+				.then(data => {
+					setConversations(data.convos);
+				})
+				.catch(err => {
+					if (isCancel(err)) return;
+					console.error(err);
+					if (err?.response?.data?.msg) {
+						toast.error(err?.response?.data?.msg);
+					} else {
+						toast.error("Something went wrong");
+					}
+				});
+		};
+		getConversations();
+		return _ => cancelToken.cancel();
+	}, [offset, limit]);
+	/**
+	 * Add Group
+	 */
+	const [show, setShow] = useState(false);
+	const [selected, setSelected] = useState([]);
+
+	const filterFn = useCallback(
+		users => users.filter(u => !selected.find(x => x._id === u._id)),
+		[selected]
+	);
+
+	const closeModal = _ => {
+		setShow(false);
+		setSelected([]);
+	};
+
+	const handleOnClick = u => {
+		setSelected(prev => [...prev, u]);
+	};
+
+	const removeFromSelected = u => {
+		setSelected(prev => prev.filter(x => x._id !== u._id));
+	};
+
+	const makeGroup = async _ => {
+		const { convo } = await createGroup(selected.map(x => x._id));
+		socket.emit("groupCreated", { members: selected, convo });
+		setConversations(prev => [convo, ...prev]);
+		closeModal();
+		navigate("/messages/" + convo._id);
+	};
+	// TODO: for mobile just hidden the history when message selected (if id exists)
+	return (
+		<div
+			className={`w-96 bg-gray-50 grow flex flex-col gap-2 px-4 pt-8 ${
+				id && "hidden"
+			} md:block md:h-screen md:shrink-0 md:grow-0 `}>
+			<Modal show={show} closeModal={closeModal}>
+				<div className="bg-white p-4 rounded-lg w-96 z-50 mt-24 relative flex flex-col mx-auto gap-2">
+					<h2 className="font-bold text-lg">Create group</h2>
+					<Search handleOnClick={handleOnClick} filterFn={filterFn} />
+					<div className="flex gap-1">
+						{selected.map(u => (
+							<div
+								key={u._id}
+								className="rounded-full text-xs text-purple-600 bg-purple-100 px-3 p-1">
+								{u.username}
+								<span
+									onClick={_ => removeFromSelected(u)}
+									className="ml-2 text-gray-400 cursor-pointer hover:text-gray-600 transition duration-100">
+									x
+								</span>
+							</div>
+						))}
+					</div>
+					{selected.length > 1 && (
+						<Button.Primary
+							onClick={makeGroup}
+							text="Create"
+							size="small"
+						/>
+					)}
+				</div>
+			</Modal>
+			<div className="mx-6 mb-10 flex justify-between items-center">
+				<h1 className="font-bold text-4xl">Chats</h1>
+				{/* TODO: add search */}
+				{/* Group */}
+				<svg
+					onClick={_ => setShow(true)}
+					className="w-5 h-5 cursor-pointer text-gray-600 hover:text-gray-900 transition duration-200"
+					viewBox="0 0 24 24"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg">
+					<path
+						d="M18 7.16C17.94 7.15 17.87 7.15 17.81 7.16C16.43 7.11 15.33 5.98 15.33 4.58C15.33 3.15 16.48 2 17.91 2C19.34 2 20.49 3.16 20.49 4.58C20.48 5.98 19.38 7.11 18 7.16Z"
+						className="stroke-current"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					/>
+					<path
+						d="M16.9699 14.44C18.3399 14.67 19.8499 14.43 20.9099 13.72C22.3199 12.78 22.3199 11.24 20.9099 10.3C19.8399 9.59004 18.3099 9.35003 16.9399 9.59003"
+						className="stroke-current"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					/>
+					<path
+						d="M5.96998 7.16C6.02998 7.15 6.09998 7.15 6.15998 7.16C7.53998 7.11 8.63998 5.98 8.63998 4.58C8.63998 3.15 7.48998 2 6.05998 2C4.62998 2 3.47998 3.16 3.47998 4.58C3.48998 5.98 4.58998 7.11 5.96998 7.16Z"
+						className="stroke-current"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					/>
+					<path
+						d="M6.99994 14.44C5.62994 14.67 4.11994 14.43 3.05994 13.72C1.64994 12.78 1.64994 11.24 3.05994 10.3C4.12994 9.59004 5.65994 9.35003 7.02994 9.59003"
+						className="stroke-current"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					/>
+					<path
+						d="M12 14.63C11.94 14.62 11.87 14.62 11.81 14.63C10.43 14.58 9.32996 13.45 9.32996 12.05C9.32996 10.62 10.48 9.46997 11.91 9.46997C13.34 9.46997 14.49 10.63 14.49 12.05C14.48 13.45 13.38 14.59 12 14.63Z"
+						className="stroke-current"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					/>
+					<path
+						d="M9.08997 17.78C7.67997 18.72 7.67997 20.26 9.08997 21.2C10.69 22.27 13.31 22.27 14.91 21.2C16.32 20.26 16.32 18.72 14.91 17.78C13.32 16.72 10.69 16.72 9.08997 17.78Z"
+						className="stroke-current"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					/>
+				</svg>
+			</div>
+			<div className="flex flex-col gap-2 ">
+				{conversations.map(convo =>
+					convo.isGroup ? (
+						<GroupConversationPreview
+							key={convo._id}
+							convo={convo}
+							updateLastSeen={_ => updateLastSeen(convo._id)}
+						/>
+					) : (
+						<ConversationPreview
+							key={convo._id}
+							convo={convo}
+							updateLastSeen={_ => updateLastSeen(convo._id)}
+						/>
+					)
+				)}
+				{/* <ConversationPreview />
+				<ConversationPreview /> */}
+			</div>
+		</div>
+	);
+};
+
+export default History;

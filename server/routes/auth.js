@@ -5,6 +5,7 @@ const {
 	createAccessToken,
 	createPasswordHash,
 	validatePassword,
+	validateRefreshToken,
 } = require("../utils/auth");
 
 const UserModel = require("../models/User");
@@ -52,9 +53,10 @@ router.post("/login", async (req, res) => {
 			id: user.id,
 			username: user.username,
 			isAdmin: user.isAdmin,
+			profilePic: user.profilePic,
 		};
 
-		res.status(200).json({
+		return res.status(200).json({
 			accessToken: createAccessToken(payload),
 			refreshToken: createRefreshToken(payload),
 		});
@@ -64,4 +66,26 @@ router.post("/login", async (req, res) => {
 	}
 });
 
+// refresh token
+router.post("/refreshtoken", async (req, res) => {
+	try {
+		const { id, username, isAdmin, profilePic } = validateRefreshToken(
+			req.body.refreshToken
+		);
+		const payload = {
+			id,
+			username,
+			isAdmin,
+			profilePic,
+		};
+
+		return res.status(200).json({
+			accessToken: createAccessToken(payload),
+			refreshToken: createRefreshToken(payload),
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(401).json({ err, msg: "Unauthorized" });
+	}
+});
 module.exports = router;

@@ -1,9 +1,7 @@
-import axios from "axios";
-
-const SERVER = process.env.REACT_APP_API_URL;
+import api from ".";
 
 const registerReq = async (username, email, password) => {
-	const { data } = await axios.post(`${SERVER}/auth/register`, {
+	const { data } = await api.post("/auth/register", {
 		username,
 		email,
 		password,
@@ -12,11 +10,19 @@ const registerReq = async (username, email, password) => {
 };
 
 const signInReq = async (email, password) => {
-	const { data } = await axios.post(`${SERVER}/auth/login`, {
+	const { data } = await api.post("/auth/login", {
 		email,
 		password,
 	});
 	return data;
 };
 
-export { registerReq, signInReq };
+const requestTokens = async rt => {
+	const { data } = await api.post("/auth/refreshtoken", {
+		refreshToken: rt,
+	});
+
+	return data;
+};
+
+export { registerReq, signInReq, requestTokens };

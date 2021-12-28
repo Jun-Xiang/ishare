@@ -22,10 +22,17 @@ router.post("/", auth, async (req, res) => {
 
 // Get messages
 router.get("/:conversationId", async (req, res) => {
+	const { offset = 0, limit = 10 } = req.query;
+
 	try {
 		const messages = await MessageModel.find({
 			conversationId: req.params.conversationId,
-		});
+		})
+			.populate("sender")
+			.sort({ createdAt: "-1" })
+			.skip(Number(offset))
+			.limit(Number(limit))
+			.exec();
 		return res.status(200).json({ messages });
 	} catch (err) {
 		console.error(err);

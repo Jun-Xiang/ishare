@@ -20,7 +20,7 @@ const UserSchema = new Schema(
 		},
 		profilePic: {
 			type: String,
-			default: "",
+			default: "default.jpg",
 		},
 		coverPic: {
 			type: String,
@@ -48,6 +48,10 @@ const UserSchema = new Schema(
 		},
 		desc: {
 			type: String,
+		},
+		isActive: {
+			type: Boolean,
+			default: false,
 		},
 	},
 	{ timestamps: true }

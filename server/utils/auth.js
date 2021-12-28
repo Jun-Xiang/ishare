@@ -44,10 +44,16 @@ const validatePassword = async (password, hash) => {
  */
 const validateToken = token => jwt.verify(token, process.env.AT_SECRET);
 
+/**
+ * Validate refresh token
+ */
+const validateRefreshToken = token => jwt.verify(token, process.env.RT_SECRET);
+
 module.exports = {
 	validatePassword,
 	createPasswordHash,
 	createAccessToken,
 	createRefreshToken,
 	validateToken,
+	validateRefreshToken,
 };

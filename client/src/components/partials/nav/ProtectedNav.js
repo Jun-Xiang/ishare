@@ -1,5 +1,8 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
+import logo from "../../../assets/img/logo.svg";
+import logout from "../../../assets/img/logout.svg";
+import { useAuth } from "../../../context/AuthContext";
 
 const StyledNavLink = ({ children, to }) => {
 	const activeClass = "bg-purple-600 text-pink-200";
@@ -10,7 +13,7 @@ const StyledNavLink = ({ children, to }) => {
 		<NavLink
 			to={to}
 			className={({ isActive }) =>
-				`transition duration-200 ease-in-out block rounded-md w-8 h-8 p-1.5 ${chooseClass(
+				`transition duration-200 ease-in-out block rounded-lg w-9 h-9 p-1.5 ${chooseClass(
 					isActive
 				)}`
 			}>
@@ -20,12 +23,24 @@ const StyledNavLink = ({ children, to }) => {
 };
 
 const ProtectedNav = () => {
+	const { signOut, user } = useAuth();
+
 	return (
-		<nav className="w-full fixed bottom-0 md:max-w-sm md:mt-2 md:relative bg-purple-50 rounded-md ">
-			<ul className="flex items-center justify-between py-4 px-10">
+		<nav className="w-full md:w-auto md:h-full bg-purple-100 md:bg-white relative flex flex-col justify-center items-center border-r-2 border-gray-400/10">
+			<Link
+				to="/feed"
+				className="hidden justify-self-start w-10 md:block absolute top-8">
+				<img
+					src={logo}
+					alt=""
+					className="cursor-pointer opacity-80 hover:opacity-100 transition duration-200"
+				/>
+			</Link>
+
+			<ul className="flex md:flex-col items-center justify-center gap-8 py-4 px-6 grow md:grow-0">
 				{/* Home Icon */}
 				<li>
-					<StyledNavLink to="feed">
+					<StyledNavLink to="/feed">
 						<svg
 							viewBox="0 0 24 24"
 							fill="none"
@@ -49,7 +64,7 @@ const ProtectedNav = () => {
 				</li>
 				{/* Messages */}
 				<li>
-					<StyledNavLink to="messages">
+					<StyledNavLink to="/messages">
 						<svg
 							viewBox="0 0 24 24"
 							fill="none"
@@ -73,7 +88,7 @@ const ProtectedNav = () => {
 				</li>
 				{/* Add post */}
 				<li>
-					<StyledNavLink to="messages">
+					<StyledNavLink to="/add">
 						<svg
 							viewBox="0 0 24 24"
 							fill="none"
@@ -102,40 +117,40 @@ const ProtectedNav = () => {
 						</svg>
 					</StyledNavLink>
 				</li>
-				{/* Notifications */}
+				{/* Me */}
 				<li>
-					<StyledNavLink to="settings">
+					<StyledNavLink to={`/profile/${user?.id}`}>
 						<svg
 							viewBox="0 0 24 24"
 							fill="none"
 							xmlns="http://www.w3.org/2000/svg">
 							<path
-								d="M12.02 2.90991C8.70997 2.90991 6.01997 5.59991 6.01997 8.90991V11.7999C6.01997 12.4099 5.75997 13.3399 5.44997 13.8599L4.29997 15.7699C3.58997 16.9499 4.07997 18.2599 5.37997 18.6999C9.68997 20.1399 14.34 20.1399 18.65 18.6999C19.86 18.2999 20.39 16.8699 19.73 15.7699L18.58 13.8599C18.28 13.3399 18.02 12.4099 18.02 11.7999V8.90991C18.02 5.60991 15.32 2.90991 12.02 2.90991Z"
+								d="M12.12 12.78C12.05 12.77 11.96 12.77 11.88 12.78C10.12 12.72 8.71997 11.28 8.71997 9.50998C8.71997 7.69998 10.18 6.22998 12 6.22998C13.81 6.22998 15.28 7.69998 15.28 9.50998C15.27 11.28 13.88 12.72 12.12 12.78Z"
 								className="stroke-current"
-								strokeWidth="2"
-								strokeMiterlimit="10"
-								strokeLinecap="round"
-							/>
-							<path
-								d="M13.87 3.19994C13.56 3.10994 13.24 3.03994 12.91 2.99994C11.95 2.87994 11.03 2.94994 10.17 3.19994C10.46 2.45994 11.18 1.93994 12.02 1.93994C12.86 1.93994 13.58 2.45994 13.87 3.19994Z"
-								className="stroke-current"
-								stroke-width="1.5"
 								strokeWidth="2"
 								strokeLinecap="round"
 								strokeLinejoin="round"
 							/>
 							<path
-								d="M15.02 19.0601C15.02 20.7101 13.67 22.0601 12.02 22.0601C11.2 22.0601 10.44 21.7201 9.90002 21.1801C9.36002 20.6401 9.02002 19.8801 9.02002 19.0601"
+								d="M18.74 19.3801C16.96 21.0101 14.6 22.0001 12 22.0001C9.40001 22.0001 7.04001 21.0101 5.26001 19.3801C5.36001 18.4401 5.96001 17.5201 7.03001 16.8001C9.77001 14.9801 14.25 14.9801 16.97 16.8001C18.04 17.5201 18.64 18.4401 18.74 19.3801Z"
 								className="stroke-current"
 								strokeWidth="2"
-								strokeMiterlimit="10"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							/>
+							<path
+								d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+								className="stroke-current"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
 							/>
 						</svg>
 					</StyledNavLink>
 				</li>
 				{/* Settings */}
 				<li>
-					<StyledNavLink to="settings">
+					<StyledNavLink to="/settings">
 						<svg
 							viewBox="0 0 24 24"
 							fill="none"
@@ -160,6 +175,15 @@ const ProtectedNav = () => {
 					</StyledNavLink>
 				</li>
 			</ul>
+
+			<div className="hidden justify-self-start w-10 md:flex justify-center absolute bottom-8">
+				<img
+					onClick={signOut}
+					src={logout}
+					alt=""
+					className="cursor-pointer opacity-80 hover:opacity-100 transition duration-200"
+				/>
+			</div>
 		</nav>
 	);
 };

@@ -8,17 +8,24 @@ import App from "./App";
 import Feed from "./pages/Feed";
 import Auth from "./pages/Auth";
 import Welcome from "./pages/Welcome";
+import PostDetails from "./pages/PostDetails";
+import Messages from "./pages/Messages";
+import Add from "./pages/Add";
+import Calls from "./pages/Calls";
 
 import PublicLayout from "./components/partials/layouts/PublicLayout";
 import ProtectedLayout from "./components/partials/layouts/ProtectedLayout";
+import Conversation from "./components/partials/messages/Conversation";
 
 import AuthProvider from "./context/AuthContext";
 import SocketProvider from "./context/SocketContext";
+import VideoProvider from "./context/VideoContext";
 
 import "./assets/css/index.css";
-
-const Left = _ => <div>Left</div>;
-const Right = _ => <div>Right</div>;
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+// TODO: add framer motion if got time
+// TODO: import poppins font
 
 const toastClass = {
 	success: "bg-green-100 text-green-700",
@@ -41,13 +48,41 @@ ReactDOM.render(
 				<BrowserRouter>
 					<Routes>
 						<Route path="/">
-							<Route element={<PublicLayout />}>
+							<Route path="/*" element={<PublicLayout />}>
 								<Route index element={<Welcome />} />
 								<Route path="auth" element={<Auth />} />
 							</Route>
 
-							<Route element={<ProtectedLayout />}>
+							<Route path="/*" element={<ProtectedLayout />}>
 								<Route path="feed" element={<Feed />} />
+								<Route
+									path="feed/:id"
+									element={<PostDetails />}
+								/>
+								<Route
+									element={<VideoProvider></VideoProvider>}>
+									<Route
+										path="messages"
+										element={<Messages />}>
+										<Route
+											path=":id/"
+											element={<Conversation />}
+										/>
+									</Route>
+
+									<Route
+										path="call/:id"
+										element={<Calls />}
+									/>
+								</Route>
+								<Route path="add" element={<Add />} />
+
+								<Route
+									path="profile/:id"
+									element={<Profile />}
+								/>
+
+								<Route path="settings" element={<Settings />} />
 							</Route>
 						</Route>
 					</Routes>

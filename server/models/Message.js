@@ -8,8 +8,18 @@ const MessageSchema = new Schema(
 		},
 		sender: {
 			type: mongoose.Types.ObjectId,
+			ref: "User",
 		},
 		text: {
+			type: String,
+		},
+		img: {
+			type: String,
+		},
+		gif: {
+			type: String,
+		},
+		autoMsg: {
 			type: String,
 		},
 	},
