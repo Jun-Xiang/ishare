@@ -11,7 +11,7 @@ const SocketProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (auth && !socketRef.current)
-			socketRef.current = io("ws://localhost:4000", {
+			socketRef.current = io(`ws://${process.env.REACT_APP_API_URL}`, {
 				auth: {
 					token: auth.accessToken,
 				},
