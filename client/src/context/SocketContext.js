@@ -11,12 +11,15 @@ const SocketProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (auth && !socketRef.current)
-			socketRef.current = io(`ws://${process.env.REACT_APP_API_URL}`, {
-				auth: {
-					token: auth.accessToken,
-				},
-				transports: ["websocket", "polling"],
-			});
+			socketRef.current = io(
+				process.env.REACT_APP_API_URL.replace("http", "ws"),
+				{
+					auth: {
+						token: auth.accessToken,
+					},
+					transports: ["websocket", "polling"],
+				}
+			);
 	}, [auth]);
 
 	return (
