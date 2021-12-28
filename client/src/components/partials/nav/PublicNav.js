@@ -8,8 +8,8 @@ const PublicNav = () => {
 		<header className="sticky top-0 flex justify-between items-center bg-white py-6 md:p-0 ">
 			<img src={logo} alt="" className="w-10" />
 			<div className="flex items-center gap-6">
-				<Link to="/auth?type=register">Register</Link>
-				<Link to="/auth?type=signin">
+				<Link to="/auth?type=signin">Login</Link>
+				<Link to="/auth?type=register">
 					<Button.Primary text="Join now" />
 				</Link>
 			</div>
