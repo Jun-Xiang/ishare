@@ -49,10 +49,21 @@ module.exports = {
 		{
 			$lookup: {
 				from: "messages",
-				localField: "_id",
-				foreignField: "conversationId",
+				let: {
+					convoId: "$_id",
+				},
 				as: "latestMsg",
-				pipeline: [{ $sort: { createdAt: -1 } }, { $limit: 1 }],
+				pipeline: [
+					{
+						$match: {
+							$expr: {
+								$eq: ["$$convoId", "$conversationId"],
+							},
+						},
+					},
+					{ $sort: { createdAt: -1 } },
+					{ $limit: 1 },
+				],
 			},
 		},
 		{
@@ -144,12 +155,21 @@ module.exports = {
 		{
 			$lookup: {
 				from: "lastseens",
-				let: { member: "$memberId" },
-				localField: "_id",
-				foreignField: "conversationId",
+				let: { member: "$memberId", convoId: "$_id" },
 				as: "lastseen",
 				pipeline: [
-					{ $match: { $expr: { $eq: ["$$member", "$userId"] } } },
+					{
+						$match: {
+							$and: [
+								{ $expr: { $eq: ["$$member", "$userId"] } },
+								{
+									$expr: {
+										$eq: ["$$convoId", "$conversationId"],
+									},
+								},
+							],
+						},
+					},
 				],
 			},
 		},
@@ -160,10 +180,21 @@ module.exports = {
 		{
 			$lookup: {
 				from: "messages",
-				localField: "_id",
-				foreignField: "conversationId",
+				let: {
+					convoId: "$_id",
+				},
 				as: "latestMsg",
-				pipeline: [{ $sort: { createdAt: -1 } }, { $limit: 1 }],
+				pipeline: [
+					{
+						$match: {
+							$expr: {
+								$eq: ["$$convoId", "$conversationId"],
+							},
+						},
+					},
+					{ $sort: { createdAt: -1 } },
+					{ $limit: 1 },
+				],
 			},
 		},
 		{
