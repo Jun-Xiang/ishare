@@ -24,13 +24,13 @@ module.exports = {
 		{
 			$unwind: "$members",
 		},
-		{
-			$match: {
-				members: {
-					$nin: [userId],
-				},
-			},
-		},
+		// {
+		// 	$match: {
+		// 		members: {
+		// 			$nin: [userId],
+		// 		},
+		// 	},
+		// },
 		{
 			$addFields: { memberId: { $toObjectId: "$members" } },
 		},

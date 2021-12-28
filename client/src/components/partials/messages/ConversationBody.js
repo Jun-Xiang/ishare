@@ -40,7 +40,6 @@ const ConversationBody = ({
 		scrollupRef.current = false;
 	}, [id]);
 	console.log(socket.id);
-	console.log(socket?.client?.id);
 
 	useEffect(() => {
 		isMountedRef.current = true;

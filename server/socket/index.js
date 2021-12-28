@@ -10,6 +10,7 @@ const {
 	updateConversationUpdatedAt,
 	triggerGroupCallStarted,
 	triggerGroupCallEnded,
+	getCurrentConversation,
 } = require("./db/conversation");
 const { isValidObjectId } = require("mongoose");
 
@@ -114,7 +115,7 @@ module.exports = http => {
 						const receiver = getUser(member._id);
 						console.log(member._id, users);
 						console.log(receiver);
-						if (receiver) {
+						if (receiver && receiver.userId !== user.id) {
 							console.log("got receiver", message);
 							io.to(receiver.socketId).emit("getUpdatedConvo", {
 								convo: updatedConvo,
@@ -169,14 +170,24 @@ module.exports = http => {
 						text,
 						image
 					);
+					const convo = await getCurrentConversation(
+						updatedMessage.conversationId,
+						user.id
+					);
 					members.forEach(m => {
 						const receiver = getUser(m._id);
 						if (receiver) {
+							io.to(receiver.socketId).emit("getUpdatedConvo", {
+								convo,
+							});
 							io.to(receiver.socketId).emit("getUpdatedMessage", {
 								senderId: user.id,
 								message: updatedMessage,
 							});
 						}
+					});
+					io.to(socket.id).emit("getUpdatedConvo", {
+						convo,
 					});
 					io.to(socket.id).emit("getUpdateMessageStatus", {
 						ok: true,
@@ -196,12 +207,18 @@ module.exports = http => {
 		);
 		// Delete message
 		socket.on("deleteMessage", async ({ messageId, members }) => {
-			const sender = getUser(user.id);
 			try {
 				const deletedMessage = await deleteMessage(messageId);
+				const convo = await getCurrentConversation(
+					deletedMessage.conversationId,
+					user.id
+				);
 				members.forEach(m => {
 					const receiver = getUser(m._id);
 					if (receiver) {
+						io.to(receiver.socketId).emit("getUpdatedConvo", {
+							convo,
+						});
 						io.to(receiver.socketId).emit("getDeletedMessage", {
 							senderId: user.id,
 							messageId,
@@ -209,13 +226,15 @@ module.exports = http => {
 						});
 					}
 				});
-
-				io.to(sender.socketId).emit("getDeletedMessageStatus", {
+				io.to(socket.id).emit("getUpdatedConvo", {
+					convo,
+				});
+				io.to(socket.id).emit("getDeletedMessageStatus", {
 					ok: true,
 					deletedMessage,
 				});
 			} catch (err) {
-				io.to(sender.socketId).emit("getDeletedMessageStatus", {
+				io.to(socket.id).emit("getDeletedMessageStatus", {
 					ok: false,
 					errMsg: "Something went wrong",
 					err,

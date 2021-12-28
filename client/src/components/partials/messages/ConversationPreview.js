@@ -9,6 +9,8 @@ const ConversationPreview = ({ convo, updateLastSeen }) => {
 	const activeClass = "bg-purple-300/80";
 	const inactiveClass = "hover:bg-purple-100";
 	const receiver = convo.members.find(x => x._id !== user.id);
+	console.log(convo);
+	if (!receiver) return <p>Loading...</p>;
 	return (
 		<NavLink
 			onClick={updateLastSeen}

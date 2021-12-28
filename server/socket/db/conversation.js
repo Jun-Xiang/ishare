@@ -17,6 +17,16 @@ const updateConversationUpdatedAt = async (conversationId, userId) => {
 	return conversation[0];
 };
 
+const getCurrentConversation = async (conversationId, userId) => {
+	const conversation = await ConversationModel.aggregate([
+		{
+			$match: { _id: mongoose.Types.ObjectId(conversationId) },
+		},
+		...aggregateConvo(userId),
+	]);
+	return conversation[0];
+};
+
 const triggerGroupCallStarted = async (conversationId, username) => {
 	await ConversationModel.findByIdAndUpdate(conversationId, {
 		newMsg: Date.now(),
@@ -49,4 +59,5 @@ module.exports = {
 	updateConversationUpdatedAt,
 	triggerGroupCallStarted,
 	triggerGroupCallEnded,
+	getCurrentConversation,
 };
