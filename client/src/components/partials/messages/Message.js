@@ -11,7 +11,7 @@ const gf = new GiphyFetch("c8DZT3btr5c8yAT6uCCJZIHEPpXqKvmI");
 // TODO: scrap meta tags and get image and stuff if got time
 const Message = forwardRef(
 	(
-		{ m, temp = false, containerRef, editMessage, receiver, deleteMessage },
+		{ m, temp = false, containerRef, editMessage, convo, deleteMessage },
 		ref
 	) => {
 		const { user } = useAuth();
@@ -45,7 +45,7 @@ const Message = forwardRef(
 					return handleDelete();
 				editMessage(
 					m._id,
-					receiver.members,
+					convo.members,
 					editedValues.text,
 					editedValues.img
 				);
@@ -53,7 +53,7 @@ const Message = forwardRef(
 		};
 
 		const handleDelete = e => {
-			!isDeleted && deleteMessage(m._id, receiver.members);
+			!isDeleted && deleteMessage(m._id, convo.members);
 			setIsDeleted(true);
 		};
 

@@ -37,7 +37,9 @@ const ConversationPreview = ({ convo, updateLastSeen }) => {
 									? convo.latestMsg.text
 									: convo.latestMsg.img
 									? "Sent an image"
-									: "Sent a gif"}
+									: convo.latestMsg.gif
+									? "Sent a gif"
+									: ""}
 							</>
 						)}
 					</p>

@@ -5,7 +5,10 @@ const MessageModel = require("../models/Message");
 const auth = require("../middleware/auth");
 const { aggregateConvo, aggregateGroup } = require("../utils/conversation");
 const mongoose = require("mongoose");
-const { updateConversationUpdatedAt } = require("../socket/db/message");
+const FormData = require("form-data");
+const fs = require("fs");
+const path = require("path");
+const { isNsfw } = require("../utils/verifyImg");
 
 // new convo
 router.post("/", auth, async (req, res) => {
@@ -15,10 +18,21 @@ router.post("/", auth, async (req, res) => {
 			members,
 			isGroup: false,
 		});
-		if (found)
-			return res
-				.status(200)
-				.json({ msg: "Conversation already exists", convo: found });
+		if (found) {
+			const convo = await ConversationModel.aggregate([
+				{
+					$match: {
+						_id: found._id,
+					},
+				},
+				...aggregateConvo(req.user.id),
+			]);
+			return res.status(200).json({
+				msg: "Conversation already exists",
+				convo: convo[0],
+				found: true,
+			});
+		}
 		// Create new convo
 		const newConversation = await ConversationModel.create({
 			members,
@@ -39,9 +53,19 @@ router.post("/", auth, async (req, res) => {
 				lastSeen: Date.now() - 1000,
 			},
 		]);
+
+		const convo = await ConversationModel.aggregate([
+			{
+				$match: {
+					_id: newConversation._id,
+				},
+			},
+			...aggregateConvo(req.user.id),
+		]);
 		res.status(200).json({
-			convo: newConversation,
+			convo: convo[0],
 			msg: "New conversation created",
+			found: false,
 		});
 	} catch (err) {
 		console.error(err);
@@ -87,7 +111,7 @@ router.post("/group", auth, async (req, res) => {
 });
 
 // join group
-router.post("/joingroup/:id", auth, async (req, res) => {
+router.put("/joingroup/:id", auth, async (req, res) => {
 	const id = req.params.id;
 
 	try {
@@ -106,9 +130,8 @@ router.post("/joingroup/:id", auth, async (req, res) => {
 });
 
 // leave group
-router.post("/leavegroup/:id", auth, async (req, res) => {
+router.put("/leavegroup/:id", auth, async (req, res) => {
 	const id = req.params.id;
-
 	try {
 		const updatedGroup = await ConversationModel.findByIdAndUpdate(
 			id,
@@ -148,6 +171,11 @@ router.get("/", auth, async (req, res) => {
 	try {
 		const conversations = await ConversationModel.aggregate([
 			{
+				$match: {
+					members: { $in: [req.user.id] },
+				},
+			},
+			{
 				$skip: Number(offset),
 			},
 			{
@@ -165,11 +193,56 @@ router.get("/", auth, async (req, res) => {
 	}
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/group/:id", auth, async (req, res) => {
+	const id = req.params.id;
+	const { name, img } = req.body;
 	try {
-		const convo = await updateConversationUpdatedAt();
-		return res.json({ convo });
-	} catch (err) {}
+		const convo = await ConversationModel.findOne({
+			members: { $in: [req.user.id] },
+			_id: id,
+		});
+		if (!convo)
+			return res.status(404).json({ msg: "Conversation not found" });
+		if (!convo.isGroup)
+			return res.status(400).json({ msg: "Only group can change name" });
+		if (img) {
+			const form = new FormData();
+			img.src = img.src.replace(/^data:([A-Za-z-+\/]+);base64,/, "");
+			const imgData = Buffer.from(img.src, "base64");
+			form.append("image", imgData, img.filename);
+
+			if (await isNsfw(form))
+				return res.status(400).json({
+					msg: "Image might contain explicit content, please upload other image or contact the support",
+				});
+
+			if (convo.groupImg !== "group.jpg")
+				fs.unlinkSync(
+					path.resolve(__dirname, "../public", convo.groupImg)
+				);
+
+			const filename = Date.now() + img.filename;
+			fs.writeFileSync(
+				path.resolve(__dirname, "../public", filename),
+				img.src,
+				"base64"
+			);
+			convo.groupImg = filename;
+		}
+
+		convo.groupName = name;
+		await convo.save();
+		const newConvo = await ConversationModel.aggregate([
+			{
+				$match: { _id: mongoose.Types.ObjectId(id) },
+			},
+			...aggregateConvo(req.user.id),
+		]);
+		return res.status(200).json({ convo: newConvo[0] });
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({ err, msg: "Something went wrong" });
+	}
 });
 
 module.exports = router;

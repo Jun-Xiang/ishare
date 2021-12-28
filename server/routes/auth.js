@@ -1,4 +1,8 @@
 const router = require("express").Router();
+const axios = require("axios");
+const path = require("path");
+const { OAuth2Client } = require("google-auth-library");
+const fs = require("fs");
 
 const {
 	createRefreshToken,
@@ -9,6 +13,11 @@ const {
 } = require("../utils/auth");
 
 const UserModel = require("../models/User");
+
+const clientId =
+	"815667115963-gd3ksgbk79kfvao7mrfo6kklq77q2ocs.apps.googleusercontent.com";
+
+const client = new OAuth2Client(clientId);
 
 // REGISTER
 router.post("/register", async (req, res) => {
@@ -59,6 +68,53 @@ router.post("/login", async (req, res) => {
 		return res.status(200).json({
 			accessToken: createAccessToken(payload),
 			refreshToken: createRefreshToken(payload),
+		});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({ err, msg: "Something went wrong" });
+	}
+});
+
+// Google login
+router.post("/logingoogle", async (req, res) => {
+	const { token } = req.body;
+	try {
+		const ticket = await client.verifyIdToken({
+			idToken: token,
+			audience: clientId,
+		});
+		const payload = ticket.getPayload();
+		let user = await UserModel.findOne({ email: payload.email }).exec();
+
+		if (!user) {
+			const image = await axios.get(payload.picture, {
+				responseType: "arraybuffer",
+			});
+			console.log(image);
+			const base64 = Buffer.from(image.data, "binary").toString("base64");
+			const filename = Date.now() + payload.sub + ".png";
+			fs.writeFileSync(
+				path.join(__dirname, "../public", filename),
+				base64,
+				"base64"
+			);
+			user = await UserModel.create({
+				email: payload.email,
+				profilePic: filename,
+				username: payload.name,
+			});
+		}
+
+		const payloadToSign = {
+			id: user.id,
+			username: user.username,
+			isAdmin: user.isAdmin,
+			profilePic: user.profilePic,
+		};
+
+		return res.status(200).json({
+			accessToken: createAccessToken(payloadToSign),
+			refreshToken: createRefreshToken(payloadToSign),
 		});
 	} catch (err) {
 		console.error(err);

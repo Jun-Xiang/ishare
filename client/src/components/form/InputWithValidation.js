@@ -3,7 +3,6 @@ import React from "react";
 const Input = ({ field, label, form: { touched, errors }, ...props }) => {
 	const error = errors[field.name];
 	const showError = touched[field.name] && error;
-	console.log(label);
 	return (
 		<div className="relative">
 			<label className="text-gray-700 capitalize">

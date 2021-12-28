@@ -17,6 +17,11 @@ const signInReq = async (email, password) => {
 	return data;
 };
 
+const signInGoogleReq = async token => {
+	const { data } = await api.post("/auth/logingoogle", { token });
+	return data;
+};
+
 const requestTokens = async rt => {
 	const { data } = await api.post("/auth/refreshtoken", {
 		refreshToken: rt,
@@ -25,4 +30,4 @@ const requestTokens = async rt => {
 	return data;
 };
 
-export { registerReq, signInReq, requestTokens };
+export { registerReq, signInReq, requestTokens, signInGoogleReq };

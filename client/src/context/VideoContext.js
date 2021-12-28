@@ -36,10 +36,9 @@ const VideoProvider = ({ children }) => {
 		_ => {
 			console.log(connectionRefs);
 			// some bug, use reload for workaround
-			setInCall(false);
-			socket?.emit("leave", { convoId });
+			socket.emit("leave", { convoId });
 			connectionRefs.current.forEach(c => c.peer.destroy());
-			window.location.reload();
+			setInCall(false);
 			// navigate(convoId);
 		},
 		[convoId, socket]
@@ -106,8 +105,10 @@ const VideoProvider = ({ children }) => {
 					const peers = connectionRefs.current.filter(
 						x => x.id !== leaverId
 					);
+
 					connectionRefs.current = peers;
 					setPeers(peers.map(p => p.peer));
+					setStreams(prev => prev.filter(x => x.id !== leaverId));
 				});
 
 				// For how many members are in the call
@@ -152,7 +153,7 @@ const VideoProvider = ({ children }) => {
 						socket.emit("acceptingRequest", { signal, callerId });
 					});
 					peer.on("stream", stream => {
-						setStreams(prev => [...prev, stream]);
+						setStreams(prev => [...prev, { id: callerId, stream }]);
 					});
 
 					peer.signal(receivedSignal);
@@ -162,10 +163,8 @@ const VideoProvider = ({ children }) => {
 
 				// Joiner
 				socket.on("joining", ({ members }) => {
-					console.log(members, "should run once too");
 					const peers = [];
 					members.forEach(id => {
-						console.log(id, "should be once only");
 						const peer = createPeer(id, socket.id, stream);
 						peers.push(peer);
 						connectionRefs.current.push({
@@ -174,7 +173,6 @@ const VideoProvider = ({ children }) => {
 							peer,
 						});
 					});
-					console.log(peers);
 					setPeers(peers);
 				});
 

@@ -1,7 +1,13 @@
 import React from "react";
+import { Navigate } from "react-router-dom";
 
-const Public = () => {
-	return <div></div>;
+import { useAuth } from "../../context/AuthContext";
+const Public = ({ children }) => {
+	const { auth } = useAuth();
+
+	if (auth) return <Navigate to="/feed" />;
+
+	return children;
 };
 
 export default Public;

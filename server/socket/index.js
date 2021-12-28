@@ -26,7 +26,11 @@ module.exports = http => {
 	 */
 	let users = [];
 	const addUser = (userId, socketId) => {
-		if (users.some(user => user.userId === userId)) return;
+		if (users.some(user => user.userId === userId)) {
+			return users.map(x =>
+				x.userId === userId ? { userId, socketId } : x
+			);
+		}
 		users.push({ userId, socketId });
 	};
 
@@ -82,9 +86,8 @@ module.exports = http => {
 		console.log("user connected");
 		// Take userId and socketId from user
 		addUser(user.id, socket.id);
-		// socket.on("addUser", userId => {
-		// 	io.emit("getUsers", users);
-		// });
+		console.log(users);
+
 		/**
 		 * Chat
 		 */
@@ -93,6 +96,7 @@ module.exports = http => {
 			"sendMessage",
 			async ({ conversationId, members, text, tempId, image, gif }) => {
 				const sender = getUser(user.id);
+				console.log(socket.id);
 				try {
 					const message = await addMessage(
 						user.id,
@@ -108,7 +112,10 @@ module.exports = http => {
 
 					members.forEach(member => {
 						const receiver = getUser(member._id);
+						console.log(member._id, users);
+						console.log(receiver);
 						if (receiver) {
+							console.log("got receiver", message);
 							io.to(receiver.socketId).emit("getUpdatedConvo", {
 								convo: updatedConvo,
 							});
@@ -162,8 +169,8 @@ module.exports = http => {
 						text,
 						image
 					);
-					members.forEach(id => {
-						const receiver = getUser(id);
+					members.forEach(m => {
+						const receiver = getUser(m._id);
 						if (receiver) {
 							io.to(receiver.socketId).emit("getUpdatedMessage", {
 								senderId: user.id,
@@ -171,14 +178,14 @@ module.exports = http => {
 							});
 						}
 					});
-					io.to(socket.socketId).emit("getUpdateMessageStatus", {
+					io.to(socket.id).emit("getUpdateMessageStatus", {
 						ok: true,
 						message: updatedMessage,
 						messageId,
 					});
 				} catch (err) {
 					console.log(err);
-					io.to(socket.socketId).emit("getMessageStatus", {
+					io.to(socket.id).emit("getMessageStatus", {
 						ok: false,
 						errMsg: "Something went wrong",
 						err,
@@ -189,12 +196,11 @@ module.exports = http => {
 		);
 		// Delete message
 		socket.on("deleteMessage", async ({ messageId, members }) => {
-			const receiver = getUser(receiverId);
 			const sender = getUser(user.id);
 			try {
 				const deletedMessage = await deleteMessage(messageId);
-				members.forEach(id => {
-					const receiver = getUser(id);
+				members.forEach(m => {
+					const receiver = getUser(m._id);
 					if (receiver) {
 						io.to(receiver.socketId).emit("getDeletedMessage", {
 							senderId: user.id,
@@ -242,10 +248,10 @@ module.exports = http => {
 		const endCall = async (socket, convoId) => {
 			clearTimeout(timeouts[convoId]);
 			const conversation = await triggerGroupCallEnded(convoId);
-			io.to(convoId).emit("callEnded", { convo: conversation });
-			io.to(convoId).emit("getMessage", {
-				message: conversation.latestMsg,
-			});
+			// io.to(convoId).emit("callEnded", { convo: conversation });
+			// io.to(convoId).emit("getMessage", {
+			// 	message: conversation.latestMsg,
+			// });
 			conversation.members.forEach(m => {
 				const member = getUser(m._id.toString());
 				// Me: Send call if member is online
@@ -281,7 +287,6 @@ module.exports = http => {
 			members.forEach(m => {
 				const member = getUser(m._id);
 				// Me: Send call if member is online
-				console.log(member, m);
 				if (member) {
 					io.to(member.socketId).emit("newCall", { convo, signal });
 					io.to(member.socketId).emit("getMessage", {
@@ -301,7 +306,6 @@ module.exports = http => {
 			// addToRoom(userId, user.socketId, convoId)
 			// end timeout if more than 1
 			const clients = io.sockets.adapter.rooms.get(convoId);
-			console.log(clients.size);
 			if (clients.size > 1) clearTimeout(timeouts[convoId]);
 
 			// Send to new joiner socketId of all users in room
@@ -335,24 +339,16 @@ module.exports = http => {
 
 		// when one user disconnects
 		socket.on("leave", async ({ convoId }) => {
-			console.log("[leave]", io.sockets.adapter.rooms.get(convoId)?.size);
-			if (io.sockets.adapter.rooms.get(convoId)?.size <= 1) {
+			if (io.sockets.adapter.rooms.get(convoId)?.size <= 2) {
 				// End call
 				await endCall(socket, convoId);
 			}
-			const leaver = getUser(user.id);
 			socket.leave(convoId);
 			io.to(convoId).emit("userLeft", { leaverId: socket.id });
 		});
 
 		socket.on("disconnecting", async _ => {
 			[...socket.rooms].forEach(room => {
-				console.log(
-					"[disconnecting]",
-					io.sockets.adapter.rooms.get(room).size
-				);
-				console.log(io.sockets.adapter.rooms.get(room));
-				console.log(io.sockets.adapter.rooms.get(room).size <= 2);
 				if (isValidObjectId(room)) {
 					io.sockets.adapter.rooms.get(room).size <= 2
 						? endCall(socket, room)

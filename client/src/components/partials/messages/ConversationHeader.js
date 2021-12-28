@@ -1,16 +1,190 @@
-import { useVideo } from "../../../context/VideoContext";
+import { Formik, Form, Field } from "formik";
+import * as yup from "yup";
+import { useRef, useState } from "react";
+import { toast } from "react-toastify";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 
-const ConversationHeader = ({ receiver }) => {
+import { useVideo } from "../../../context/VideoContext";
+import Modal from "../../Modal";
+import Input from "../../form/InputWithValidation";
+import Preview from "../../PreviewImage";
+import Button from "../../Button";
+import Spinner from "../../Spinner";
+import { updateConversation, leaveGroup } from "../../../api/conversations";
+import Menu from "../../Menu";
+
+const ConversationHeader = ({ convo }) => {
 	const { call, answerCall } = useVideo();
+	const { updateConvo, removeConvo } = useOutletContext();
+	const navigate = useNavigate();
+	const { id } = useParams();
+
+	const targetRef = useRef(null);
+
+	const [show, setShow] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [showMenu, setShowMenu] = useState(false);
+	const closeModal = _ => {
+		setShow(false);
+	};
+	const closeMenu = _ => setShowMenu(false);
+
+	const handleLeaveGroup = async _ => {
+		const { convo } = await leaveGroup(id);
+		removeConvo(convo._id);
+		navigate("/messages");
+	};
 	// TODO: refactor
 	return (
-		<div className="flex justify-between items-center py-8">
+		<div className="flex justify-between items-center py-8 group">
+			{convo.isGroup && (
+				<Menu
+					show={showMenu}
+					targetRef={targetRef}
+					closeMenu={closeMenu}>
+					{style => (
+						<span
+							onClick={handleLeaveGroup}
+							className={`${style} justify-between text-gray-600 hover:text-red-600`}>
+							Leave group
+							<svg
+								className="h-5 w-5"
+								viewBox="0 0 24 24"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg">
+								<path
+									d="M17.4399 14.62L19.9999 12.06L17.4399 9.5"
+									className="stroke-current"
+									strokeWidth="2"
+									strokeMiterlimit="10"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+								<path
+									d="M9.76001 12.0601H19.93"
+									className="stroke-current"
+									strokeWidth="2"
+									strokeMiterlimit="10"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+								<path
+									d="M11.76 20C7.34001 20 3.76001 17 3.76001 12C3.76001 7 7.34001 4 11.76 4"
+									className="stroke-current"
+									strokeWidth="2"
+									strokeMiterlimit="10"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+						</span>
+					)}
+				</Menu>
+			)}
+			{convo.isGroup && (
+				<Modal show={show} closeModal={closeModal}>
+					<div className="py-6 px-8 rounded-lg bg-white w-96 max-w-[90%] mx-auto mt-8">
+						<Formik
+							initialValues={{
+								name: convo.groupName,
+								file: null,
+							}}
+							validationSchema={yup.object({
+								name: yup.string().required("Must have a name"),
+								file: yup.mixed(),
+							})}
+							onSubmit={async ({ name, file }) => {
+								setLoading(true);
+								if (file) {
+									const reader = new FileReader();
+									reader.onload = async e => {
+										const img = {
+											src: e.target.result,
+											filename: file.name,
+										};
+										const { convo } =
+											await updateConversation(
+												id,
+												name,
+												img
+											);
+										updateConvo(convo._id, convo);
+										setLoading(false);
+										setShow(false);
+									};
+									reader.readAsDataURL(file);
+								} else {
+									const { convo } = await updateConversation(
+										id,
+										name,
+										null
+									);
+									updateConvo(convo._id, convo);
+									setLoading(false);
+									setShow(false);
+								}
+							}}>
+							{props => (
+								<Form className="flex flex-col gap-4">
+									{loading && (
+										<Spinner size="50" fullscreen={true} />
+									)}
+									<h3 className="text-xl font-bold mb-2">
+										Update group info
+									</h3>
+									<Field
+										component={Input}
+										name="name"
+										placeholder="Group name"
+									/>
+									<div className="flex flex-col">
+										<label className="text-gray-700 capitalize">
+											Group Picture
+										</label>
+										<input
+											accept=".png,.jpeg,.jpg,.gif"
+											type="file"
+											name="file"
+											onChange={e => {
+												const validExt = [
+													"png",
+													"jpg",
+													"jpeg",
+												];
+												const ext =
+													e.target.files[0].name
+														.split(".")
+														.pop()
+														.toLowerCase();
+												if (!validExt.includes(ext))
+													return toast.error(
+														"Invalid file type"
+													);
+												props.setFieldValue(
+													"file",
+													e.target.files[0]
+												);
+											}}
+										/>
+										<Preview file={props.values.file} />
+									</div>
+									<Button.Primary
+										type="submit"
+										text="Update"
+										size="small"
+									/>
+								</Form>
+							)}
+						</Formik>
+					</div>
+				</Modal>
+			)}
 			<div className="flex gap-4 items-center">
 				<img
 					src={`${process.env.REACT_APP_API_URL}/${
-						receiver?.isGroup
-							? "group.jpg"
-							: receiver?.members[0]?.profilePic
+						convo?.isGroup
+							? convo.groupImg ?? "group.jpg"
+							: convo?.members[0]?.profilePic ?? "default.jpg"
 					}`}
 					alt=""
 					className="rounded-full w-10 h-10 object-cover aspect-square shrink-0"
@@ -18,15 +192,48 @@ const ConversationHeader = ({ receiver }) => {
 				<div className="flex justify-between items-center w-full">
 					<div className="flex flex-col justify-between">
 						<h4 className="font-bold text-xl line-clamp-1">
-							{receiver?.isGroup
-								? receiver?.groupName
-								: receiver?.members[0]?.username}
+							{convo?.isGroup
+								? convo?.groupName
+								: convo?.members[0]?.username}
 						</h4>
 						<p className="line-clamp-1 text-sm text-gray-700">
 							Online
 						</p>
 					</div>
 				</div>
+				{convo.isGroup && (
+					<svg
+						onClick={_ => setShow(true)}
+						className="w-5 h-5 cursor-pointer self-start mt-1 -ml-2 opacity-0 pointer-events-none shrink-0 text-gray-700 hover:text-gray-900 group-hover:opacity-100 group-hover:pointer-events-auto transition duration-200"
+						viewBox="0 0 24 24"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path
+							d="M13.26 3.59997L5.04997 12.29C4.73997 12.62 4.43997 13.27 4.37997 13.72L4.00997 16.96C3.87997 18.13 4.71997 18.93 5.87997 18.73L9.09997 18.18C9.54997 18.1 10.18 17.77 10.49 17.43L18.7 8.73997C20.12 7.23997 20.76 5.52997 18.55 3.43997C16.35 1.36997 14.68 2.09997 13.26 3.59997Z"
+							className="stroke-current"
+							strokeWidth="2"
+							strokeMiterlimit="10"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						/>
+						<path
+							d="M11.89 5.05005C12.32 7.81005 14.56 9.92005 17.34 10.2"
+							className="stroke-current"
+							strokeWidth="2"
+							strokeMiterlimit="10"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						/>
+						<path
+							d="M3 22H21"
+							className="stroke-current"
+							strokeWidth="2"
+							strokeMiterlimit="10"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						/>
+					</svg>
+				)}
 			</div>
 			{/* Action */}
 			<div className="flex gap-8 items-center">
@@ -46,9 +253,9 @@ const ConversationHeader = ({ receiver }) => {
 				{/* Video */}
 				<svg
 					onClick={_ => {
-						receiver.onGoingCall
-							? answerCall(receiver._id)
-							: call(receiver._id, receiver.members);
+						convo.onGoingCall
+							? answerCall(convo._id)
+							: call(convo._id, convo.members);
 					}}
 					className="w-5 h-5 cursor-pointer text-gray-600 hover:text-gray-900 transition duration-200"
 					viewBox="0 0 22 20"
@@ -69,6 +276,32 @@ const ConversationHeader = ({ receiver }) => {
 						strokeLinejoin="round"
 					/>
 				</svg>
+				{/* Three dots */}
+				{convo.isGroup && (
+					<svg
+						ref={targetRef}
+						onClick={_ => setShowMenu(true)}
+						className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-900 transition duration-200"
+						viewBox="0 0 24 24"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path
+							d="M5 10C3.9 10 3 10.9 3 12C3 13.1 3.9 14 5 14C6.1 14 7 13.1 7 12C7 10.9 6.1 10 5 10Z"
+							className="stroke-current"
+							strokeWidth="2"
+						/>
+						<path
+							d="M19 10C17.9 10 17 10.9 17 12C17 13.1 17.9 14 19 14C20.1 14 21 13.1 21 12C21 10.9 20.1 10 19 10Z"
+							className="stroke-current"
+							strokeWidth="2"
+						/>
+						<path
+							d="M12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10Z"
+							className="stroke-current"
+							strokeWidth="2"
+						/>
+					</svg>
+				)}
 			</div>
 		</div>
 	);

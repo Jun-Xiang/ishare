@@ -70,7 +70,10 @@ const Profile = () => {
 			</div>
 
 			{/* Create post button */}
-			<Button.Primary text="Create Post" />
+			<Button.Primary
+				text="Create Post"
+				onClick={_ => navigate("/add")}
+			/>
 		</div>
 	);
 };

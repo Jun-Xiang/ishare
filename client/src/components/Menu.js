@@ -28,7 +28,6 @@ const Menu = ({
 			});
 		}
 	}, [show, targetRef, additionalOffset]);
-	console.log(pos);
 
 	useEffect(() => {
 		const handleClickOutside = e => {

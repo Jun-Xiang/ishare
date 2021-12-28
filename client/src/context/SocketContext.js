@@ -10,7 +10,7 @@ const SocketProvider = ({ children }) => {
 	const socketRef = useRef(null);
 
 	useEffect(() => {
-		if (auth)
+		if (auth && !socketRef.current)
 			socketRef.current = io("ws://localhost:4000", {
 				auth: {
 					token: auth.accessToken,

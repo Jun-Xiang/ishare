@@ -5,19 +5,26 @@ import { Formik, Form, Field } from "formik";
 import * as yup from "yup";
 import { toast } from "react-toastify";
 
-import { getMe, updateUser, changeProfilePic } from "../api/users";
+import { getMe, updateUser, changeProfilePic, deleteUser } from "../api/users";
 import { useAuth } from "../context/AuthContext";
 import Input from "../components/form/InputWithValidation";
 import Button from "../components/Button";
 import Spinner from "../components/Spinner";
 import Preview from "../components/PreviewImage";
+import Divider from "../components/Divider";
 
 const Settings = () => {
-	const { user: curUser } = useAuth();
+	const { user: curUser, signOut } = useAuth();
 	const navigate = useNavigate();
 
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(false);
+
+	const handleDeleteAccount = async _ => {
+		const { msg } = await deleteUser();
+		toast.success(msg);
+		signOut();
+	};
 
 	useEffect(() => {
 		const cancelToken = CancelToken.source();
@@ -125,6 +132,17 @@ const Settings = () => {
 							<Preview file={props.values.file} />
 						</div>
 						<Button.Primary type="submit" text="Update" />
+						<Divider text="Others" />
+						<Button.Secondary
+							type="button"
+							text="Logout"
+							onClick={signOut}
+						/>
+						<Button.Danger
+							type="button"
+							text="Delete Account"
+							onClick={handleDeleteAccount}
+						/>
 					</Form>
 				)}
 			</Formik>

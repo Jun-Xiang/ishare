@@ -20,6 +20,10 @@ const ConversationSchema = new Schema(
 			type: Boolean,
 			default: false,
 		},
+		groupImg: {
+			type: String,
+			default: "group.jpg",
+		},
 	},
 	{ timestamps: true }
 );

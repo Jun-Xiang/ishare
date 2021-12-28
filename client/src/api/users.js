@@ -43,3 +43,9 @@ export const searchUsers = async (search, cancelToken) => {
 
 	return data;
 };
+
+export const deleteUser = async _ => {
+	const { data } = await api.delete("/users");
+
+	return data;
+};

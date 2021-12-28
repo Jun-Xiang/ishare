@@ -6,7 +6,7 @@ import Button from "../../Button";
 import Actions from "../../Actions";
 import Input from "../../form/ChatInput";
 
-const ConversationFooter = ({ sendMessage, receiver }) => {
+const ConversationFooter = ({ sendMessage, convo }) => {
 	const { id } = useParams();
 
 	const [message, setMessage] = useState("");
@@ -18,10 +18,10 @@ const ConversationFooter = ({ sendMessage, receiver }) => {
 
 	const handleSendMessage = e => {
 		e.preventDefault();
-		if ((message.trim() === "" && !image) || !receiver) return;
+		if ((message.trim() === "" && !image) || !convo) return;
 		if (!image) {
 			// send msg
-			sendMessage(id, receiver.members, message);
+			sendMessage(id, convo.members, message);
 			setMessage("");
 		} else {
 			// send msg with image
@@ -30,7 +30,7 @@ const ConversationFooter = ({ sendMessage, receiver }) => {
 				setImgUrl(null);
 				setImage(null);
 				setMessage("");
-				sendMessage(id, receiver.members, message, {
+				sendMessage(id, convo.members, message, {
 					src: e.target.result,
 					filename: image.name,
 					type: image.type,
@@ -57,12 +57,12 @@ const ConversationFooter = ({ sendMessage, receiver }) => {
 
 	const handleGifClick = gif => {
 		const { id: gifId } = gif;
-		sendMessage(id, receiver.members, null, null, gifId);
+		sendMessage(id, convo.members, null, null, gifId);
 	};
 
 	useEffect(() => {
 		inputRef.current.focus();
-	}, []);
+	}, [id]);
 
 	return (
 		<form
@@ -176,7 +176,7 @@ const ConversationFooter = ({ sendMessage, receiver }) => {
 			</div>
 			{/* Send message */}
 			<Button.Primary
-				disabled={!receiver}
+				disabled={!convo}
 				onClick={handleSendMessage}
 				text={
 					<svg

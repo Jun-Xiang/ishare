@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+	createContext,
+	useContext,
+	useState,
+	useEffect,
+	useCallback,
+} from "react";
 import { toast } from "react-toastify";
 import jwt_decode from "jwt-decode";
 
@@ -8,7 +14,12 @@ import {
 	clearTokens,
 	calculteExpiry,
 } from "../utils/auth";
-import { registerReq, signInReq, requestTokens } from "../api/auth";
+import {
+	registerReq,
+	signInReq,
+	requestTokens,
+	signInGoogleReq,
+} from "../api/auth";
 
 const AuthContext = createContext();
 
@@ -41,10 +52,31 @@ const AuthProvider = ({ children }) => {
 		}
 	};
 
+	const signInGoogle = useCallback(async (token, cb) => {
+		try {
+			const { accessToken, refreshToken } = await signInGoogleReq(token);
+			setTokens(accessToken, refreshToken);
+			setAuth({ accessToken, refreshToken });
+			setUser(jwt_decode(accessToken));
+			typeof cb === "function" && cb();
+		} catch (err) {
+			if (err?.response?.data?.msg) {
+				toast.error(err?.response?.data?.msg, {
+					toastId: "signin",
+				});
+			} else {
+				toast.error(err.message, {
+					toastId: "signin",
+				});
+			}
+		}
+	}, []);
+
 	const signOut = cb => {
 		clearTokens();
 		setAuth(null);
 		setUser(null);
+		window.google?.accounts?.id?.disableAutoSelect();
 		typeof cb === "function" && cb();
 	};
 
@@ -93,7 +125,8 @@ const AuthProvider = ({ children }) => {
 		};
 	}, [auth]);
 	return (
-		<AuthContext.Provider value={{ auth, user, signIn, signOut, register }}>
+		<AuthContext.Provider
+			value={{ auth, user, signIn, signInGoogle, signOut, register }}>
 			{children}
 		</AuthContext.Provider>
 	);

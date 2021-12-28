@@ -56,7 +56,10 @@ module.exports = {
 			},
 		},
 		{
-			$unwind: "$latestMsg",
+			$unwind: {
+				path: "$latestMsg",
+				preserveNullAndEmptyArrays: true,
+			},
 		},
 		// Get sender
 		{
@@ -87,6 +90,7 @@ module.exports = {
 				latestMsg: { $first: "$latestMsg" },
 				updatedAt: { $first: "$updatedAt" },
 				onGoingCall: { $first: "$onGoingCall" },
+				groupImg: { $first: "$groupImg" },
 			},
 		},
 		// project values
@@ -163,7 +167,10 @@ module.exports = {
 			},
 		},
 		{
-			$unwind: "$latestMsg",
+			$unwind: {
+				path: "$latestMsg",
+				preserveNullAndEmptyArrays: true,
+			},
 		},
 		// group
 		{
@@ -179,6 +186,7 @@ module.exports = {
 				latestMsg: { $first: "$latestMsg" },
 				updatedAt: { $first: "$updatedAt" },
 				onGoingCall: { $first: "$onGoingCall" },
+				groupImg: { $first: "$groupImg" },
 			},
 		},
 	],

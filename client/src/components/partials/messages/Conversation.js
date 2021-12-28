@@ -1,6 +1,6 @@
-import React, { useCallback, useState, useRef, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { useParams } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
 import axios, { isCancel } from "axios";
 
 import ConversationHeader from "./ConversationHeader";
@@ -8,20 +8,17 @@ import ConversationBody from "./ConversationBody";
 import ConversationFooter from "./ConversationFooter";
 
 import { useSocket } from "../../../context/SocketContext";
-import { getConversationReq } from "../../../api/conversations";
 import { useAuth } from "../../../context/AuthContext";
 
 const Conversation = () => {
 	const socket = useSocket();
 	const { user } = useAuth();
 	const { id } = useParams();
-
-	const containerRef = useRef(null);
-	const isMountedRef = useRef(false);
+	const { conversations } = useOutletContext();
 
 	const [sentMsg, setSentMsg] = useState([]);
 	const [editedMsg, setEditedMsg] = useState([]);
-	const [receiver, setReceiver] = useState(null);
+	const [convo, setConvo] = useState(null);
 
 	const sendMessage = (conversationId, members, msg, img, gif) => {
 		const tempId = Date.now();
@@ -91,54 +88,23 @@ const Conversation = () => {
 		});
 	}, []);
 
-	useEffect(() => {
-		const cancelToken = axios.CancelToken.source();
-		try {
-			getConversationReq(id, cancelToken.token).then(data =>
-				setReceiver(data.convo)
-			);
-		} catch (err) {
-			if (isCancel(err)) return;
-			console.error(err);
-			if (err?.response?.data?.msg) {
-				toast.error(err?.response?.data?.msg);
-			} else {
-				toast.error("Something went wrong");
-			}
-		}
-		return _ => cancelToken.cancel();
-	}, [id]);
+	const updateLastSeen = e => {
+		socket.emit("updateLastSeen", { conversationId: id });
+	};
 
 	useEffect(() => {
-		isMountedRef.current = true;
-		socket?.on("newCall", ({ convo }) => {
-			console.log("[Conversation] ", convo);
-			if (isMountedRef.current) setReceiver(convo);
-		});
+		setConvo(conversations?.find(x => x._id === id));
+	}, [id, conversations]);
 
-		return _ => {
-			isMountedRef.current = false;
-		};
-	}, [socket]);
-
-	useEffect(() => {
-		const updateLastSeen = e => {
-			socket.emit("updateLastSeen", { conversationId: id });
-		};
-		const container = containerRef?.current;
-		container?.addEventListener("click", updateLastSeen);
-		return _ => {
-			container?.removeEventListener("click", updateLastSeen);
-		};
-	}, [id, socket]);
 	// * receiver is convo in conversationpreview
 	// TODO: add online icon if got time (high priority)
+	if (!convo) return <p>Loading...</p>;
 	return (
 		<div
 			className="flex flex-col grow px-4 md:px-10 h-screen w-full"
-			ref={containerRef}>
+			onClick={updateLastSeen}>
 			{/* Receiver details and action */}
-			<ConversationHeader receiver={receiver} />
+			<ConversationHeader convo={convo} />
 			<ConversationBody
 				updateSentMsg={updateSentMsg}
 				updateEditedMsg={updateEditedMsg}
@@ -146,9 +112,9 @@ const Conversation = () => {
 				editMessage={editMessage}
 				deleteMessage={deleteMessage}
 				editedMsg={editedMsg}
-				receiver={receiver}
+				convo={convo}
 			/>
-			<ConversationFooter sendMessage={sendMessage} receiver={receiver} />
+			<ConversationFooter sendMessage={sendMessage} convo={convo} />
 		</div>
 	);
 };

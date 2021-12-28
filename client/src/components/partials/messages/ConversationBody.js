@@ -21,7 +21,7 @@ const ConversationBody = ({
 	editMessage,
 	deleteMessage,
 	editedMsg,
-	receiver,
+	convo,
 }) => {
 	const { id } = useParams();
 	const socket = useSocket();
@@ -39,6 +39,8 @@ const ConversationBody = ({
 	useEffect(() => {
 		scrollupRef.current = false;
 	}, [id]);
+	console.log(socket.id);
+	console.log(socket?.client?.id);
 
 	useEffect(() => {
 		isMountedRef.current = true;
@@ -46,12 +48,14 @@ const ConversationBody = ({
 		 * Change messages state
 		 */
 		const addMessage = message => {
+			console.log("isMounted", isMountedRef.current);
 			if (!isMountedRef.current) return;
 			setMessages(prev =>
 				[...prev, message].sort((a, b) => a.createdAt - b.createdAt)
 			);
 		};
 		const editMessage = message => {
+			console.log("isMounted", isMountedRef.current);
 			if (!isMountedRef.current) return;
 			setMessages(prev => {
 				const editedIdx = prev.findIndex(x => x._id === message._id);
@@ -67,6 +71,12 @@ const ConversationBody = ({
 		 * Receiver
 		 * */
 		const handleGetMessage = ({ senderId, message }) => {
+			console.log("why not working");
+			console.log(
+				message.conversationId !== idRef.current,
+				message.conversationId,
+				idRef.current
+			);
 			// if diff room
 			if (message.conversationId !== idRef.current) return;
 			addMessage(message);
@@ -103,6 +113,7 @@ const ConversationBody = ({
 			if (deletedMessage.conversationId !== idRef.current || !ok) return;
 			deleteMessage(deletedMessage);
 		};
+		if (socket) console.log("setting up listeners");
 		// Receiver
 		socket?.on("getMessage", handleGetMessage);
 		socket?.on("getUpdatedMessage", handleUpdatedMessage);
@@ -120,12 +131,12 @@ const ConversationBody = ({
 		const cancelToken = axios.CancelToken.source();
 		const getMessages = async _ => {
 			try {
-				const { messages } = await getMessagesReq(
+				const { messages } = (await getMessagesReq(
 					id,
 					offset,
 					limit,
 					cancelToken.token
-				);
+				)) || { messages: [] };
 				const receivedMsg = [...messages].reverse();
 				if (!sameChat) {
 					setMessages([...receivedMsg]);
@@ -196,7 +207,7 @@ const ConversationBody = ({
 							editMessage={editMessage}
 							deleteMessage={deleteMessage}
 							temp={!!hasEdited}
-							receiver={receiver}
+							convo={convo}
 						/>
 					</React.Fragment>
 				);

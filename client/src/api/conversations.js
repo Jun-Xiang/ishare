@@ -29,3 +29,15 @@ export const getConversationsReq = async (offset, limit, cancelToken) => {
 	);
 	return data;
 };
+
+export const updateConversation = async (id, name, img) => {
+	const { data } = await api.put(`/conversations/group/${id}`, { name, img });
+
+	return data;
+};
+
+export const leaveGroup = async id => {
+	const { data } = await api.put(`/conversations/leavegroup/${id}`);
+
+	return data;
+};

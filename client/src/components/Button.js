@@ -7,7 +7,7 @@ const determineStyle = size => {
 		case "rect":
 			return "p-4";
 		case "big":
-			return "px-10 py-4";
+			return "px-14 py-4";
 		case "full":
 			return "w-full px-8 py-3";
 		case "small":
@@ -57,6 +57,18 @@ const ButtonOutline = ({ text, size = "normal", ...props }) => {
 	);
 };
 
+const ButtonDanger = ({ text, size = "normal", ...props }) => {
+	return (
+		<button
+			{...props}
+			className={`${determineStyle(
+				size
+			)} text-red-600 hover:text-white flex items-center justify-center outline-2 outline outline-red-600 rounded-lg hover:bg-red-600 focus:bg-red-600 active:bg-red-600 transition duration-200 ease-in-out`}>
+			<p className="text-base font-medium leading-normal">{text}</p>
+		</button>
+	);
+};
+
 const ButtonText = ({ text, className, ...props }) => {
 	return (
 		<a
@@ -71,6 +83,7 @@ const Button = {
 	Primary: ButtonPrimary,
 	Secondary: ButtonSecondary,
 	Outline: ButtonOutline,
+	Danger: ButtonDanger,
 	Text: ButtonText,
 };
 

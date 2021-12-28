@@ -22,7 +22,7 @@ const triggerGroupCallStarted = async (conversationId, username) => {
 		newMsg: Date.now(),
 		onGoingCall: true,
 	});
-	await createAutoMsg(conversationId, `${username} has started a group call`);
+	await createAutoMsg(conversationId, `${username} has started a call`);
 
 	const conversation = await ConversationModel.aggregate(
 		aggregateGroup(conversationId)
@@ -36,7 +36,7 @@ const triggerGroupCallEnded = async conversationId => {
 		newMsg: Date.now(),
 		onGoingCall: false,
 	});
-	await createAutoMsg(conversationId, "Group call has ended");
+	await createAutoMsg(conversationId, "Call has ended");
 
 	const conversation = await ConversationModel.aggregate(
 		aggregateGroup(conversationId)

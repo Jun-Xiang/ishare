@@ -5,7 +5,6 @@ import { useAuth } from "../../../context/AuthContext";
 const ConversationPreview = ({ convo, updateLastSeen }) => {
 	const { user } = useAuth();
 	// TODO: use sender details instead of getting from members array cuz member can leave group one
-	console.log(convo.lastSeen);
 	const read =
 		new Date(convo.newMsg).getTime() <= new Date(convo.lastSeen).getTime();
 	const activeClass = "bg-purple-300/80";
@@ -20,7 +19,9 @@ const ConversationPreview = ({ convo, updateLastSeen }) => {
 				} rounded-xl flex items-center transition duration-100 gap-4 cursor-pointer py-4 px-6`
 			}>
 			<img
-				src={`${process.env.REACT_APP_API_URL}/group.jpg`}
+				src={`${process.env.REACT_APP_API_URL}/${
+					convo.groupImg ?? "group.jpg"
+				}`}
 				alt=""
 				className="rounded-full w-10 h-10 object-cover shrink-0"
 			/>
@@ -34,7 +35,6 @@ const ConversationPreview = ({ convo, updateLastSeen }) => {
 							convo.latestMsg.autoMsg
 						) : (
 							<>
-								{console.log("wht me?")}
 								{user.id === convo.latestMsg.sender
 									? "Me: "
 									: `${convo.latestMsg.senderDetails.username}: `}
