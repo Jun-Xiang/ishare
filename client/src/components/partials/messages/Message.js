@@ -7,6 +7,7 @@ import { useAuth } from "../../../context/AuthContext";
 import Actions from "../../Actions";
 import Menu from "../../Menu";
 import Input from "../../form/ChatInput";
+import Modal from "../../Modal";
 const gf = new GiphyFetch("c8DZT3btr5c8yAT6uCCJZIHEPpXqKvmI");
 // TODO: scrap meta tags and get image and stuff if got time
 const Message = forwardRef(
@@ -19,6 +20,7 @@ const Message = forwardRef(
 		const inputRef = useRef();
 
 		const [show, setShow] = useState(false);
+		const [showImg, setShowImg] = useState(false);
 		const [edit, setEdit] = useState(false);
 		const [gif, setGif] = useState(null);
 		const [isDeleted, setIsDeleted] = useState(false);
@@ -58,6 +60,7 @@ const Message = forwardRef(
 		};
 
 		const closeMenu = _ => setShow(false);
+		const closeShowImg = _ => setShowImg(false);
 
 		useEffect(() => {
 			if (edit) inputRef.current?.focus();
@@ -253,7 +256,19 @@ const Message = forwardRef(
 									/>
 								</svg>
 							)}
+							<Modal show={showImg} closeModal={closeShowImg}>
+								<img
+									src={
+										process.env.REACT_APP_API_URL +
+										"/" +
+										m.img
+									}
+									alt=""
+									className="rounded-lg aspect-auto max-w-[80%] cursor-pointer relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+								/>
+							</Modal>
 							<img
+								onClick={_ => setShowImg(true)}
 								onLoad={_ => {
 									containerRef?.current?.scrollTo({
 										top: containerRef.current?.scrollHeight,
@@ -265,7 +280,7 @@ const Message = forwardRef(
 									process.env.REACT_APP_API_URL + "/" + m.img
 								}
 								alt=""
-								className="rounded-lg w-56 -mb-1"
+								className="rounded-lg w-56 -mb-1 cursor-pointer "
 							/>
 						</div>
 					)}

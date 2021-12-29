@@ -8,6 +8,7 @@ import { useSocket } from "../../../context/SocketContext";
 import Modal from "../../Modal";
 import Search from "../Search";
 import Button from "../../Button";
+import useIntersecting from "../../../hooks/useIntersecting";
 
 // TODO: try to optimize and remove socket listeners in cleanup function
 
@@ -16,12 +17,18 @@ const History = ({
 	addConvo,
 	updateConvo,
 	updateConvoLastSeen,
+	setOffset,
+	limit,
 }) => {
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const socket = useSocket();
 
 	const isMountedRef = useRef(null);
+	// const containerRef = useRef(null);
+	// const scrollupRef = useRef(null);
+
+	// const { entry, setNode } = useIntersecting({ root: containerRef.current });
 
 	const updateLastSeen = id => {
 		socket.emit("updateLastSeen", { conversationId: id });
@@ -108,7 +115,40 @@ const History = ({
 		if (!found) addConvo(convo);
 		navigate(convo._id);
 	};
-	// TODO: for mobile just hidden the history when message selected (if id exists)
+
+	// useEffect(() => {
+	// 	const container = containerRef?.current;
+	// 	let lastScroll = container?.scrollTop;
+	// 	const updateScrollup = e => {
+	// 		if (lastScroll > container?.scrollTop) {
+	// 			// scrolling up
+	// 			scrollupRef.current = true;
+	// 		} else {
+	// 			scrollupRef.current = false;
+	// 		}
+
+	// 		lastScroll = container?.scrollTop;
+	// 	};
+
+	// 	container.addEventListener("scroll", updateScrollup);
+
+	// 	return () => {
+	// 		container.removeEventListener("scroll", updateScrollup);
+	// 	};
+	// }, [containerRef]);
+
+	// useEffect(() => {
+	// 	console.log(entry, scrollupRef);
+	// 	if (entry.isIntersecting && scrollupRef.current === false) {
+	// 		setOffset(prev => {
+	// 			if (prev + limit === conversations.length) {
+	// 				return prev + limit;
+	// 			}
+	// 			return prev;
+	// 		});
+	// 	}
+	// }, [entry, setOffset, limit, conversations]);
+
 	return (
 		<div
 			className={`w-96 bg-gray-50 grow flex md:flex flex-col px-4 pt-8 ${
@@ -198,7 +238,10 @@ const History = ({
 				</div>
 				<Search handleOnClick={createConvo} />
 			</div>
-			<div className="flex flex-col gap-2 overflow-y-auto p-2">
+			<div
+				className="flex flex-col gap-2 overflow-y-auto p-2"
+				// ref={containerRef}
+			>
 				{conversations.map(convo =>
 					convo.isGroup ? (
 						<GroupConversationPreview
@@ -214,6 +257,7 @@ const History = ({
 						/>
 					)
 				)}
+				{/* <div ref={setNode}></div> */}
 				{/* <ConversationPreview />
 				<ConversationPreview /> */}
 			</div>

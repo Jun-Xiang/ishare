@@ -28,7 +28,7 @@ const Profile = () => {
 
 	return (
 		<div className="w-80 h-screen flex-col justify-between px-6 pb-16 hidden md:flex md:sticky md:top-0">
-			<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-8 h-full">
 				{/* Profile details */}
 				<div className="mt-24 flex flex-col items-center">
 					<img
@@ -53,11 +53,11 @@ const Profile = () => {
 				</div>
 
 				{/* Posts */}
-				<div className="flex flex-wrap gap-4">
+				<div className="flex flex-wrap gap-[5%] overflow-y-auto">
 					{posts.map(p => (
 						<Link
 							to={`/feed/${p._id}`}
-							className="aspect-square w-20"
+							className="aspect-square w-[28%]"
 							key={p._id}>
 							<img
 								className="w-full h-full object-cover"

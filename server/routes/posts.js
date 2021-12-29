@@ -22,11 +22,20 @@ router.get("/:id", auth, async (req, res) => {
 // TODO: implement pagination if got time
 // get all posts
 router.get("/", auth, async (req, res) => {
+	const { limit = 10, offset = 0 } = req.query;
 	try {
 		const posts = await PostModel.find({})
 			.sort({ createdAt: -1 })
-			.populate("userId");
+			.populate("userId")
+			.skip(Number(offset))
+			.limit(Number(limit))
+			.exec();
 		const commentsCount = await CommentModel.aggregate([
+			{
+				$match: {
+					post: { $in: posts.map(p => p._id) },
+				},
+			},
 			{
 				$group: {
 					_id: "$post",

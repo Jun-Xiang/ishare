@@ -6,7 +6,6 @@ const auth = require("../middleware/auth");
 router.post("/", auth, async (req, res) => {
 	try {
 		const { conversationId, text } = req.body;
-		//  TODO: add image and giphy stuff
 		const newMessage = await MessageModel.create({
 			sender: req.user.id,
 			conversationId,

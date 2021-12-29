@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios, { isCancel } from "axios";
@@ -12,7 +12,7 @@ const Messages = () => {
 	const [conversations, setConversations] = useState([]);
 
 	const [offset, setOffset] = useState(0);
-	const [limit, setLimit] = useState(10);
+	const limitRef = useRef(10);
 
 	const addConvo = useCallback(
 		convo =>
@@ -57,9 +57,9 @@ const Messages = () => {
 	useEffect(() => {
 		const cancelToken = axios.CancelToken.source();
 		const getConversations = async _ => {
-			getConversationsReq(offset, limit, cancelToken.token)
+			getConversationsReq(offset, limitRef.current, cancelToken.token)
 				.then(data => {
-					setConversations(data.convos);
+					setConversations(prev => [...prev, ...data.convos]);
 				})
 				.catch(err => {
 					if (isCancel(err)) return;
@@ -73,7 +73,7 @@ const Messages = () => {
 		};
 		getConversations();
 		return _ => cancelToken.cancel();
-	}, [offset, limit]);
+	}, [offset]);
 
 	return (
 		<div className="flex grow">
@@ -82,6 +82,8 @@ const Messages = () => {
 				updateConvo={updateConvo}
 				addConvo={addConvo}
 				updateConvoLastSeen={updateConvoLastSeen}
+				setOffset={setOffset}
+				limit={limitRef.current}
 			/>
 			<Outlet context={{ conversations, updateConvo, removeConvo }} />
 		</div>

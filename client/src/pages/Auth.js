@@ -70,7 +70,6 @@ const Auth = () => {
 				password: "",
 			}}
 			onSubmit={async ({ email, password, username }) => {
-				// TODO: Implement Auto login if got time
 				isSignIn
 					? await signIn(email, password, () => {
 							navigate(from, { replace: true });

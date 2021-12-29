@@ -1,7 +1,6 @@
 import React from "react";
 
 const Spinner = ({ size, fullscreen }) => {
-	// TODO: add black bg if fullscreen
 	const fullscreenStyle =
 		"bg-black/80 inset-0 absolute top-0 z-50 flex items-center justify-center";
 	return (

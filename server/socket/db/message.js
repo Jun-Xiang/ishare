@@ -16,7 +16,6 @@ const addMessage = async (sender, conversationId, text, image, gif) => {
 	}
 	// Not the best way cuz the image isnt protected
 	// TODO: research how to protect image from being accessed by ppl not in conversation
-	// TODO: update convo newMsg
 	// prevent text or img if there is gif
 	const newMessage = await MessageModel.create({
 		sender,

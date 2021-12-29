@@ -9,8 +9,10 @@ export const createPost = async (desc, img) => {
 	return data;
 };
 
-export const getPosts = async cancelToken => {
-	const { data } = await api.get("/posts", { cancelToken });
+export const getPosts = async (offset, limit, cancelToken) => {
+	const { data } = await api.get(`/posts?offset=${offset}&limit=${limit}`, {
+		cancelToken,
+	});
 
 	return data;
 };

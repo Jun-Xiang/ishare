@@ -1,3 +1,4 @@
+const { isValidObjectId } = require("mongoose");
 const { validateToken } = require("../utils/auth");
 const {
 	addMessage,
@@ -12,7 +13,8 @@ const {
 	triggerGroupCallEnded,
 	getCurrentConversation,
 } = require("./db/conversation");
-const { isValidObjectId } = require("mongoose");
+
+const { updateUserStatus } = require("./db/user");
 
 module.exports = http => {
 	const io = require("socket.io")(http, {
@@ -79,7 +81,7 @@ module.exports = http => {
 	 * Websocket start
 	 */
 
-	io.on("connection", socket => {
+	io.on("connection", async socket => {
 		const user = socket.user;
 		/**
 		 * On Connect
@@ -87,6 +89,12 @@ module.exports = http => {
 		console.log("user connected");
 		// Take userId and socketId from user
 		addUser(user.id, socket.id);
+		try {
+			const updated = await updateUserStatus(user.id, true);
+			console.log(updated);
+		} catch (err) {
+			console.log(err);
+		}
 		console.log(users);
 
 		/**
@@ -375,11 +383,13 @@ module.exports = http => {
 			socket.leave(convoId);
 			io.to(convoId).emit("userLeft", { leaverId: socket.id });
 		});
-
+		// handle refresh
 		socket.on("disconnecting", async _ => {
+			console.log("help?", socket.rooms);
+			// if is refresh when leave event is emitted, the user already leave the room so doesn't matter
 			[...socket.rooms].forEach(room => {
 				if (isValidObjectId(room)) {
-					io.sockets.adapter.rooms.get(room).size <= 1
+					io.sockets.adapter.rooms.get(room).size <= 2
 						? endCall(room)
 						: io.to(room).emit("userLeft", { leaverId: socket.id });
 				}
@@ -389,9 +399,15 @@ module.exports = http => {
 		/**
 		 * On Disconnect
 		 */
-		socket.on("disconnect", _ => {
+		socket.on("disconnect", async _ => {
 			console.log("disconnect");
 			removeUser(socket.id);
+			try {
+				const updated = await updateUserStatus(user.id, false);
+				console.log(updated);
+			} catch (err) {
+				console.log(err);
+			}
 			socket.rooms.forEach(id => {
 				console.log(id);
 			});

@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useOutletContext, useParams } from "react-router-dom";
-import axios, { isCancel } from "axios";
 
 import ConversationHeader from "./ConversationHeader";
 import ConversationBody from "./ConversationBody";
@@ -9,6 +8,7 @@ import ConversationFooter from "./ConversationFooter";
 
 import { useSocket } from "../../../context/SocketContext";
 import { useAuth } from "../../../context/AuthContext";
+import Spinner from "../../Spinner";
 
 const Conversation = () => {
 	const socket = useSocket();
@@ -30,7 +30,6 @@ const Conversation = () => {
 			tempId,
 			gif,
 		});
-		// TODO: refactor the sender._id stuff
 		setSentMsg(prev => [
 			...prev,
 			{
@@ -96,9 +95,8 @@ const Conversation = () => {
 		setConvo(conversations?.find(x => x._id === id));
 	}, [id, conversations]);
 
-	// * receiver is convo in conversationpreview
 	// TODO: add online icon if got time (high priority)
-	if (!convo) return <p>Loading...</p>;
+	if (!convo) return <Spinner size="50" fullscreen={true} />;
 	return (
 		<div
 			className="flex flex-col grow px-4 md:px-10 h-screen w-full"

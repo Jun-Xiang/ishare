@@ -6,9 +6,10 @@ const ConversationPreview = ({ convo, updateLastSeen }) => {
 	const { user } = useAuth();
 	const read =
 		new Date(convo.newMsg).getTime() < new Date(convo.lastSeen).getTime();
-	const activeClass = "bg-purple-300/80";
+	const activeClass = "bg-purple-200/80";
 	const inactiveClass = "hover:bg-purple-100";
 	const receiver = convo.members.find(x => x._id !== user.id);
+	const isOnline = receiver?.isActive;
 	console.log(convo, receiver, user.id);
 	if (!receiver) return <p>Loading...</p>;
 	return (
@@ -20,11 +21,16 @@ const ConversationPreview = ({ convo, updateLastSeen }) => {
 					isActive ? activeClass : inactiveClass
 				} rounded-xl flex items-center transition duration-100 gap-4 cursor-pointer py-4 px-6`
 			}>
-			<img
-				src={`${process.env.REACT_APP_API_URL}/${receiver.profilePic}`}
-				alt=""
-				className="rounded-full w-10 h-10 object-cover shrink-0"
-			/>
+			<div className="relative shrink-0 w-10 h-10">
+				<img
+					src={`${process.env.REACT_APP_API_URL}/${receiver.profilePic}`}
+					alt=""
+					className="rounded-full w-full h-full object-cover"
+				/>
+				{isOnline && (
+					<div className="rounded-full p-1.5 bg-green-600 absolute right-0 bottom-0 border-[3px] border-white transform translate-x-[1.5px] translate-y-[1.5px]"></div>
+				)}
+			</div>
 			<div className="flex justify-between items-center w-full">
 				<div className="flex flex-col justify-between">
 					<h4 className="font-bold line-clamp-1">

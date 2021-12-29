@@ -36,9 +36,14 @@ const ConversationHeader = ({ convo }) => {
 		removeConvo(convo._id);
 		navigate("/messages");
 	};
+
 	// For dms only
-	const sender =
+	const receiver =
 		!convo?.isGroup && convo?.members?.find(x => x._id !== user.id);
+	const isOnline = convo?.isGroup
+		? convo?.members.find(x => x.isActive && x._id !== user.id)
+		: receiver?.isActive;
+
 	// TODO: refactor
 	return (
 		<div className="flex justify-between items-center py-8 group">
@@ -185,24 +190,44 @@ const ConversationHeader = ({ convo }) => {
 				</Modal>
 			)}
 			<div className="flex gap-4 items-center">
-				<img
-					src={`${process.env.REACT_APP_API_URL}/${
-						convo?.isGroup
-							? convo.groupImg ?? "group.jpg"
-							: sender?.profilePic ?? "default.jpg"
-					}`}
-					alt=""
-					className="rounded-full w-10 h-10 object-cover aspect-square shrink-0"
-				/>
+				<svg
+					onClick={_ => navigate("/messages")}
+					className="w-8 h-8 cursor-pointer text-gray-700 hover:text-gray-900 transition duration-200 shrink-0 md:hidden"
+					viewBox="0 0 24 24"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg">
+					<path
+						d="M15 19.9201L8.47997 13.4001C7.70997 12.6301 7.70997 11.3701 8.47997 10.6001L15 4.08008"
+						className="stroke-current"
+						strokeWidth="2"
+						strokeMiterlimit="10"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					/>
+				</svg>
+				<div className="relative shrink-0 w-10 h-10">
+					<img
+						src={`${process.env.REACT_APP_API_URL}/${
+							convo?.isGroup
+								? convo.groupImg ?? "group.jpg"
+								: receiver?.profilePic ?? "default.jpg"
+						}`}
+						alt=""
+						className="rounded-full h-full w-full object-cover"
+					/>
+					{isOnline && (
+						<div className="rounded-full p-1.5 bg-green-600 absolute right-0 bottom-0 border-[3px] border-white transform translate-x-[1.5px] translate-y-[1.5px]"></div>
+					)}
+				</div>
 				<div className="flex justify-between items-center w-full">
 					<div className="flex flex-col justify-between">
 						<h4 className="font-bold text-xl line-clamp-1">
 							{convo?.isGroup
 								? convo?.groupName
-								: sender?.username}
+								: receiver?.username}
 						</h4>
 						<p className="line-clamp-1 text-sm text-gray-700">
-							Online
+							{isOnline && "Online"}
 						</p>
 					</div>
 				</div>

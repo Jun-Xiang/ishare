@@ -7,9 +7,11 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 
 import Divider from "../../Divider";
 import Message from "./Message";
+import Spinner from "../../Spinner";
 
 import { getMessagesReq } from "../../../api/messages";
 import { useSocket } from "../../../context/SocketContext";
+import useIntersecting from "../../../hooks/useIntersecting";
 
 dayjs.extend(localizedFormat);
 
@@ -31,13 +33,27 @@ const ConversationBody = ({
 	const scrollupRef = useRef(false);
 	const containerRef = useRef(null);
 	const isMountedRef = useRef(false);
+	const limitRef = useRef(10);
 
 	const [messages, setMessages] = useState([]);
 	const [offset, setOffset] = useState(0);
-	const [limit, setLimit] = useState(10);
+	const [loading, setLoading] = useState(false);
+
+	const { entry, setNode } = useIntersecting({ root: containerRef.current });
+	useEffect(() => {
+		if (scrollupRef.current && entry.isIntersecting) {
+			setOffset(prev => {
+				if (prev + limitRef.current === messages.length) {
+					return prev + limitRef.current;
+				}
+				return prev;
+			});
+		}
+	}, [entry, messages]);
 
 	useEffect(() => {
 		scrollupRef.current = false;
+		setMessages([]);
 	}, [id]);
 	console.log(socket.id);
 
@@ -129,11 +145,12 @@ const ConversationBody = ({
 		const sameChat = id === idRef.current;
 		const cancelToken = axios.CancelToken.source();
 		const getMessages = async _ => {
+			setLoading(true);
 			try {
 				const { messages } = (await getMessagesReq(
 					id,
 					offset,
-					limit,
+					limitRef.current,
 					cancelToken.token
 				)) || { messages: [] };
 				const receivedMsg = [...messages].reverse();
@@ -143,7 +160,9 @@ const ConversationBody = ({
 				} else {
 					setMessages(prev => [...receivedMsg, ...prev]);
 				}
+				setLoading(false);
 			} catch (err) {
+				setLoading(false);
 				if (isCancel(err)) return;
 				console.error(err);
 				if (err?.response?.data?.msg) {
@@ -155,8 +174,7 @@ const ConversationBody = ({
 		};
 		getMessages();
 		return _ => cancelToken.cancel();
-	}, [offset, limit, id]);
-
+	}, [offset, id]);
 	useEffect(() => {
 		!scrollupRef.current &&
 			scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
@@ -188,6 +206,8 @@ const ConversationBody = ({
 		<div
 			className="grow flex flex-col px-2 md:px-4 overflow-y-auto gap-4"
 			ref={containerRef}>
+			{loading && <Spinner size="50" fullscreen={true} />}
+
 			{messages.map((m, i) => {
 				// For index 0 use Date.now
 				const prev = messages[i - 1] || { createdAt: 0 };
@@ -195,9 +215,16 @@ const ConversationBody = ({
 				const msgDate = dayjs(m.createdAt, "YYYY-MM-DD");
 				const diffDate = msgDate.isAfter(prevDate, "day");
 				const hasEdited = editedMsg.find(x => x.messageId === m._id);
-				if (m.autoMsg) return <Divider key={m._id} text={m.autoMsg} />;
+				if (m.autoMsg)
+					return (
+						<React.Fragment key={m._id}>
+							{i === 0 && <div ref={setNode}></div>}
+							<Divider text={m.autoMsg} />
+						</React.Fragment>
+					);
 				return (
 					<React.Fragment key={m._id}>
+						{i === 0 && <div ref={setNode}></div>}
 						{diffDate && <Divider text={msgDate.format("LL")} />}
 						<Message
 							m={m}
