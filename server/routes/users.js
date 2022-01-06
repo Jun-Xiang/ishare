@@ -3,6 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const FormData = require("form-data");
+const mongoose = require("mongoose");
 
 const auth = require("../middleware/auth");
 const { createPasswordHash } = require("../utils/auth");
@@ -77,6 +78,9 @@ router.delete("/", auth, async (req, res) => {
 	const user = req.user;
 	try {
 		const deleted = await UserModel.findByIdAndDelete(user.id).exec();
+		const deletedPosts = await PostModel.deleteMany({
+			userId: mongoose.Types.ObjectId(user.id),
+		});
 		if (deleted)
 			return res
 				.status(200)

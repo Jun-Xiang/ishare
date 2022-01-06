@@ -24,3 +24,7 @@ genSecret.js
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+server/public/*
+!server/public/default.jpg
+!server/public/group.jpg

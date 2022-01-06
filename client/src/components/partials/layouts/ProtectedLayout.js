@@ -1,5 +1,11 @@
 import React from "react";
-import { Routes, Route, Outlet, useParams } from "react-router-dom";
+import {
+	Routes,
+	Route,
+	Outlet,
+	useParams,
+	useLocation,
+} from "react-router-dom";
 import Protected from "../../auth/Protected";
 import Profile from "../feed/Profile";
 import ProtectedNav from "../nav/ProtectedNav";
@@ -8,6 +14,7 @@ import Header from "../Header";
 /* TODO: (low priority) Find out how to use multiple components from the same Outlet */
 const ProtectedLayout = () => {
 	const { id } = useParams();
+	const location = useLocation();
 
 	return (
 		<Protected>
@@ -15,7 +22,7 @@ const ProtectedLayout = () => {
 				{/* Left */}
 				<div
 					className={`sticky bottom-0 w-full ${
-						id && "hidden"
+						location.pathname.includes("messages") && id && "hidden"
 					} md:block md:top-0 md:w-auto md:h-screen`}>
 					{/* <ProtectedNav /> */}
 					<ProtectedNav />

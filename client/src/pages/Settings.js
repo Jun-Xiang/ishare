@@ -81,7 +81,7 @@ const Settings = () => {
 					file: yup.mixed(),
 				})}>
 				{props => (
-					<Form className="flex flex-col gap-5 w-[25%] m-auto">
+					<Form className="flex flex-col gap-5 w-[70%] md:w-[25%] m-auto">
 						{loading && <Spinner size="50" fullscreen={true} />}
 						<h1 className="text-3xl font-bold">Edit Profile</h1>
 						<Field

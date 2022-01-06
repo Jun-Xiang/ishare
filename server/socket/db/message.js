@@ -52,7 +52,7 @@ const updateLastSeen = async (conversationId, userId) => {
 	const lastSeen = await LastSeenModel.findOneAndUpdate(
 		{ conversationId, userId },
 		{ lastSeen: Date.now() },
-		{ new: true }
+		{ new: true, upsert: true }
 	);
 	return lastSeen;
 };

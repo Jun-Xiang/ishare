@@ -194,7 +194,7 @@ const PostDetails = () => {
 				<div className="w-full flex justify-between items-center">
 					<PostHeader p={post} />
 					{/* Three dots icon */}
-					{user.id === post.userId._id && (
+					{user.id === post.userId?._id && (
 						<svg
 							ref={actionRef}
 							onClick={_ => setShow(true)}

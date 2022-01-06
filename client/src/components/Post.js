@@ -177,7 +177,7 @@ const Post = ({ p, updatePost, commentsCount, removePostFromState }) => {
 						/>
 					</svg>
 					{/* Three dots icon */}
-					{user.id === p.userId._id && (
+					{user.id === p.userId?._id && (
 						<svg
 							ref={actionRef}
 							onClick={_ => setShow(true)}

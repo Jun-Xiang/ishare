@@ -22,7 +22,8 @@ const client = new OAuth2Client(clientId);
 // REGISTER
 router.post("/register", async (req, res) => {
 	const { username, email, password } = req.body;
-
+	if (username.toLowerCase().trim().replace(" ", "") === "deleteduser")
+		return res.status(500).json({ msg: "Invalid username" });
 	try {
 		const user = await UserModel.create({
 			username,
