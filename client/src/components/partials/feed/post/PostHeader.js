@@ -13,7 +13,7 @@ const PostHeader = ({ p }) => {
 				className="w-10 h-10 rounded-3xl object-cover object-center"
 			/>
 			<div className="flex flex-col">
-				{p ? (
+				{p.userId ? (
 					<Link
 						to={`/profile/${p.userId._id}`}
 						className="font-bold text-base">
