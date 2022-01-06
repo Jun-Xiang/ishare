@@ -11,7 +11,6 @@ const ConversationPreview = ({ convo, updateLastSeen }) => {
 	const receiver = convo.members.find(x => x._id !== user.id);
 	const isOnline = receiver?.isActive;
 	console.log(convo, receiver, user.id);
-	if (!receiver) return <p>Loading...</p>;
 	return (
 		<NavLink
 			onClick={updateLastSeen}
@@ -23,7 +22,9 @@ const ConversationPreview = ({ convo, updateLastSeen }) => {
 			}>
 			<div className="relative shrink-0 w-10 h-10">
 				<img
-					src={`${process.env.REACT_APP_API_URL}/${receiver.profilePic}`}
+					src={`${process.env.REACT_APP_API_URL}/${
+						receiver?.profilePic || "default.jpg"
+					}`}
 					alt=""
 					className="rounded-full w-full h-full object-cover"
 				/>
@@ -34,7 +35,7 @@ const ConversationPreview = ({ convo, updateLastSeen }) => {
 			<div className="flex justify-between items-center w-full">
 				<div className="flex flex-col justify-between">
 					<h4 className="font-bold line-clamp-1">
-						{receiver.username}
+						{receiver?.username || "Deleted User"}
 					</h4>
 					<p className="line-clamp-1 text-xs text-gray-600">
 						{convo.latestMsg.autoMsg ? (

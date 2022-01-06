@@ -74,7 +74,9 @@ const Message = forwardRef(
 			}
 		}, [m]);
 
-		const me = user.id === m.sender._id;
+		const userExists = m.sender != null;
+		const me = user.id === m.sender?._id;
+
 		const showActions = me && !m.errMsg && !temp;
 		const meClass =
 			"rounded-2xl rounded-br-none self-end text-white bg-purple-600";
@@ -313,13 +315,21 @@ const Message = forwardRef(
 						} flex gap-2 items-center`}>
 						<img
 							src={`${process.env.REACT_APP_API_URL}/${
-								temp ? user.profilePic : m.sender.profilePic
+								userExists
+									? temp
+										? user.profilePic
+										: m.sender.profilePic
+									: "default.jpg"
 							}`}
 							alt=""
 							className="h-5 w-5 object-cover rounded-full"
 						/>
 						<p className="text-xs font-bold">
-							{me ? "You" : m.sender.username}
+							{userExists
+								? me
+									? "You"
+									: m.sender.username
+								: "Deleted User"}
 						</p>
 						<span className="text-gray-400 text-xs">
 							{dayjs(m.createdAt).format("LT")}

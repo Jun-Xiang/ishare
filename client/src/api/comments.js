@@ -1,4 +1,6 @@
 import api from ".";
+import {isCancel} from 'axios'
+import { toast } from "react-toastify";
 
 export const createComment = async (postId, text) => {
 	const { data } = await api.post("/comments/" + postId, {
@@ -8,8 +10,13 @@ export const createComment = async (postId, text) => {
 };
 
 export const getComments = async (postId, cancelToken) => {
-	const { data } = await api.get("/comments/" + postId, { cancelToken });
-	return data;
+	try {
+		const { data: {comments} } = await api.get("/comments/" + postId, { cancelToken });
+		return comments;
+	} catch (err) {
+		if (!isCancel(err)) toast.error(err.message);
+		return []
+	}
 };
 
 export const updateComment = async (commentId, text) => {

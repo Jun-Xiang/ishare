@@ -54,6 +54,7 @@ const ConversationBody = ({
 	useEffect(() => {
 		scrollupRef.current = false;
 		setMessages([]);
+		setOffset(0);
 	}, [id]);
 	console.log(socket.id);
 
@@ -86,12 +87,6 @@ const ConversationBody = ({
 		 * Receiver
 		 * */
 		const handleGetMessage = ({ senderId, message }) => {
-			console.log("why not working");
-			console.log(
-				message.conversationId !== idRef.current,
-				message.conversationId,
-				idRef.current
-			);
 			// if diff room
 			if (message.conversationId !== idRef.current) return;
 			addMessage(message);
@@ -147,12 +142,12 @@ const ConversationBody = ({
 		const getMessages = async _ => {
 			setLoading(true);
 			try {
-				const { messages } = (await getMessagesReq(
+				const messages = await getMessagesReq(
 					id,
 					offset,
 					limitRef.current,
 					cancelToken.token
-				)) || { messages: [] };
+				);
 				const receivedMsg = [...messages].reverse();
 				if (!sameChat) {
 					setMessages([...receivedMsg]);

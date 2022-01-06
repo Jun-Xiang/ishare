@@ -31,24 +31,13 @@ const PostDetails = () => {
 	useEffect(() => {
 		const postCancelToken = CancelToken.source();
 		const commentCancelToken = CancelToken.source();
-		getPost(id, postCancelToken.token)
-			.then(data => {
-				setPost(data.post);
-			})
-			.catch(err => {
-				if (isCancel(err)) return;
-				toast.error(err.message);
-			});
+		getPost(id, postCancelToken.token).then(post => {
+			setPost(post);
+		});
 
-		getComments(id, commentCancelToken.token)
-			.then(data => {
-				setComments(data.comments);
-			})
-			.catch(err => {
-				if (isCancel(err)) return;
-				toast.error(err.message);
-			});
-
+		getComments(id, commentCancelToken.token).then(comments => {
+			setComments(comments);
+		});
 		return _ => {
 			postCancelToken.cancel();
 			commentCancelToken.cancel();
@@ -80,7 +69,7 @@ const PostDetails = () => {
 	const postComment = async _ => {
 		if (newComment.trim().length === 0) return;
 		const { comment } = await createComment(post._id, newComment).catch(
-			err => !isCancel(err) && toast.error(err.message)
+			err => toast.error(err.message)
 		);
 		setComments(prev => [...prev, comment]);
 		setNewComment("");
@@ -109,6 +98,8 @@ const PostDetails = () => {
 	const closeMenu = _ => setShow(false);
 
 	if (!post) return <p>Loading...</p>;
+	if (Object.keys(post).length === 0)
+		return <p>Error, please refresh and try again</p>;
 
 	return (
 		<div className="flex justify-center py-14 overflow-y-auto">

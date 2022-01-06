@@ -1,4 +1,6 @@
 import api from ".";
+import { isCancel } from "axios";
+import { toast } from "react-toastify";
 
 export const createConversation = async receiverId => {
 	const { data } = await api.post("/conversations", {
@@ -16,18 +18,31 @@ export const createGroup = async members => {
 };
 
 export const getConversationReq = async (id, cancelToken) => {
-	const { data } = await api.get(`/conversations/${id}`, { cancelToken });
-	return data;
+	try {
+		const { data } = await api.get(`/conversations/${id}`, { cancelToken });
+		return data;
+	} catch (err) {
+		if (err?.response?.data?.msg) toast.error(err?.response?.data?.msg);
+		else if (!isCancel(err)) toast.error(err.message);
+
+		return {};
+	}
 };
 
 export const getConversationsReq = async (offset, limit, cancelToken) => {
-	const { data } = await api.get(
-		`/conversations?offset=${offset}&limit=${limit}`,
-		{
-			cancelToken,
-		}
-	);
-	return data;
+	try {
+		const { data } = await api.get(
+			`/conversations?offset=${offset}&limit=${limit}`,
+			{
+				cancelToken,
+			}
+		);
+		return data;
+	} catch (err) {
+		if (err?.response?.data?.msg) toast.error(err?.response?.data?.msg);
+		else if (!isCancel(err)) toast.error(err.message);
+		return [];
+	}
 };
 
 export const updateConversation = async (id, name, img) => {

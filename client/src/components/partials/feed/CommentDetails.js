@@ -33,22 +33,27 @@ const CommentDetails = ({ c, updateCommentState, removeCommentFromState }) => {
 		}
 	};
 
+	const userExists = c.sender;
 	return (
 		<div className="flex group hover:bg-gray-100 transition duration-50 p-2 rounded-lg">
 			<div className="flex flex-col w-full">
 				<div className="flex items-center gap-3">
 					<img
-						src={`${process.env.REACT_APP_API_URL}/${c.sender.profilePic}`}
+						src={`${process.env.REACT_APP_API_URL}/${
+							userExists ? c.sender.profilePic : "default.jpg"
+						}`}
 						className="w-8 h-8 rounded-3xl object-cover object-center"
 						alt=""
 					/>
 					<div className="flex flex-col">
-						<h6 className="font-medium">{c.sender.username}</h6>
+						<h6 className="font-medium">
+							{userExists ? c.sender.username : "Deleted User"}
+						</h6>
 						<p className="text-gray-400 text-xs">
 							<TimeAgo date={c.createdAt} />
 						</p>
 					</div>
-					{c.sender._id === user.id && (
+					{c.sender?._id === user.id && (
 						<Actions className="ml-auto opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
 							<Actions.Action onClick={_ => setEditing(true)}>
 								{style => (

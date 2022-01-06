@@ -1,4 +1,6 @@
 import api from ".";
+import { isCancel } from "axios";
+import { toast } from "react-toastify";
 
 export const createPost = async (desc, img) => {
 	const { data } = await api.post("/posts", {
@@ -10,17 +12,32 @@ export const createPost = async (desc, img) => {
 };
 
 export const getPosts = async (offset, limit, cancelToken) => {
-	const { data } = await api.get(`/posts?offset=${offset}&limit=${limit}`, {
-		cancelToken,
-	});
+	try {
+		const { data } = await api.get(
+			`/posts?offset=${offset}&limit=${limit}`,
+			{
+				cancelToken,
+			}
+		);
 
-	return data;
+		return data;
+	} catch (err) {
+		if (!isCancel(err)) toast.error(err.message);
+		return { posts: [], commentsCount: [] };
+	}
 };
 
 export const getPost = async (id, cancelToken) => {
-	const { data } = await api.get("/posts/" + id, { cancelToken });
+	try {
+		const {
+			data: { post },
+		} = await api.get("/posts/" + id, { cancelToken });
 
-	return data;
+		return post;
+	} catch (err) {
+		if (!isCancel(err)) toast.error(err.message);
+		return {};
+	}
 };
 
 export const likePost = async id => {
