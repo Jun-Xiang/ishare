@@ -214,24 +214,32 @@ router.put(
 		// nsfw image filter
 		const reqUser = req.user;
 		try {
-			const form = new FormData();
-			form.append("image", req.file.buffer, req.file.filename);
-			if (await isNsfw(form))
-				return res.status(400).json({
-					msg: "Image might contain explicit content, please upload other image or contact the support",
-				});
+			// console.log("here");
+			// const form = new FormData();
+			// console.log("here", req.file.filename);
+			// form.append("image", req.file.buffer, req.file.filename);
+			// console.log("here");
+			// if (await isNsfw(form))
+			// 	return res.status(400).json({
+			// 		msg: "Image might contain explicit content, please upload other image or contact the support",
+			// 	});
 			const user = await UserModel.findById(reqUser.id);
 			if (!user) return res.status(400).json({ msg: "User not found" });
 			console.log(user.profilePic, "profpic");
-			if (user.profilePic && user.profilePic !== "default.jpg")
-				fs.unlinkSync(
-					path.resolve(__dirname + "../public/" + user.profilePic)
-				);
+			if (user.profilePic && user.profilePic !== "default.jpg") {
+				try {
+					fs.unlinkSync(
+						path.resolve(__dirname + "../public/" + user.profilePic)
+					);
+				} catch {}
+			}
 			user.profilePic = req.file.filename;
 			await user.save();
 			return res.status(200).json({ user });
 		} catch (err) {
 			console.log(err);
+			console.log(err.message);
+			console.log(err.stack);
 			return res.status(500).json({ err, msg: "Something went wrong" });
 		}
 	}

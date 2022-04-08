@@ -9,10 +9,7 @@ const PostDescription = forwardRef(
 						showReadMore && "line-clamp-2"
 					} overflow-clip`}
 					ref={ref}>
-					{p.desc} definitely not along description cause i want to
-					test and its from the post definitely not hacked don't worry
-					yikes not long enough don't worry we try again hopefully
-					it's long enough u
+					{p.desc}
 				</figcaption>
 				{showReadMore && (
 					<p

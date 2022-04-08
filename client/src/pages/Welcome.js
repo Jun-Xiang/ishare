@@ -11,10 +11,10 @@ const Welcome = () => {
 				<span className="text-sm text-purple-500 tracking-wide font-bold">
 					WELCOME
 				</span>
-				<h1 className="font-bold text-5xl md:w-[20ch] mb-6">
+				<h1 className="font-bold text-5xl md:w-[20ch] mb-6 leading-tight">
 					Capture and share the world's moments.
 				</h1>
-				<p className="max-w-full md:max-w-prose leading-relaxed text-gray-500">
+				<p className="max-w-full md:max-w-prose leading-[1.75] text-gray-500">
 					Ishare is a social networking service that enables its users
 					to take pictures and videos, and share them either publicly
 					or privately on the app. Users can follow other users' feeds

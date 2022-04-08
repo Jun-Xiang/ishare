@@ -4,7 +4,7 @@ import { useAuth } from "../../../../context/AuthContext";
 
 const PostLike = ({ handleLike, p }) => {
 	const { user } = useAuth();
-
+	console.log(p);
 	return (
 		<div
 			className={`flex gap-1 items-center cursor-pointer ${

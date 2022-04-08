@@ -54,15 +54,15 @@ router.get("/", auth, async (req, res) => {
 router.post("/", auth, async (req, res) => {
 	const { desc, img } = req.body;
 	try {
-		const form = new FormData();
+		// const form = new FormData();
 		img.src = img.src.replace(/^data:([A-Za-z-+\/]+);base64,/, "");
-		const imgData = Buffer.from(img.src, "base64");
-		form.append("image", imgData, img.filename);
+		// const imgData = Buffer.from(img.src, "base64");
+		// form.append("image", imgData, img.filename);
 
-		if (await isNsfw(form))
-			return res.status(400).json({
-				msg: "Image might contain explicit content, please upload other image or contact the support",
-			});
+		// if (await isNsfw(form))
+		// 	return res.status(400).json({
+		// 		msg: "Image might contain explicit content, please upload other image or contact the support",
+		// 	});
 		const filename = Date.now() + img.filename;
 		fs.writeFileSync(
 			path.resolve(__dirname, "../public", filename),
@@ -94,7 +94,7 @@ router.put("/like/:id", auth, async (req, res) => {
 			},
 			{ new: true }
 		).populate("userId");
-		return res.status(200).json({ post: updated });
+		return res.status(200).json(updated);
 	} catch (err) {
 		console.log(err);
 		return res.status(500).json({ err, msg: "Something went wrong" });
@@ -114,7 +114,7 @@ router.put("/unlike/:id", auth, async (req, res) => {
 			},
 			{ new: true }
 		).populate("userId");
-		return res.status(200).json({ post: updated });
+		return res.status(200).json(updated);
 	} catch (err) {
 		console.log(err);
 		return res.status(500).json({ err, msg: "Something went wrong" });
