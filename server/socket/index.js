@@ -389,9 +389,8 @@ module.exports = http => {
 			// if is refresh when leave event is emitted, the user already leave the room so doesn't matter
 			[...socket.rooms].forEach(room => {
 				if (isValidObjectId(room)) {
-					io.sockets.adapter.rooms.get(room).size <= 2
-						? endCall(room)
-						: io.to(room).emit("userLeft", { leaverId: socket.id });
+					io.sockets.adapter.rooms.get(room).size > 3 &&
+						io.to(room).emit("userLeft", { leaverId: socket.id });
 				}
 			});
 		});

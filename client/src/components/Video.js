@@ -18,7 +18,7 @@ const Video = ({ peer }) => {
 		};
 	}, [peer]);
 
-	return <video autoPlay playsInline ref={vidRef} />;
+	return <video className="w-1/2" autoPlay playsInline ref={vidRef} />;
 };
 
 export default Video;

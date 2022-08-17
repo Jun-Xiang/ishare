@@ -21,7 +21,7 @@ const Calls = () => {
 	return (
 		<>
 			<div
-				className="rounded-full p-5 bg-red-600 text-white hover:bg-red-800 absolute bottom-10 left-1/2 transform -translate-x-1/2 cursor-pointer"
+				className="rounded-full p-5 bg-red-600 text-white hover:bg-red-800 absolute z-99 bottom-10 left-1/2 transform -translate-x-1/2 cursor-pointer"
 				onClick={_ => leaveCall()}>
 				<svg
 					className="w-5 h-5"
@@ -50,23 +50,26 @@ const Calls = () => {
 					/>
 				</svg>
 			</div>
-			<video playsInline autoPlay ref={myVidRef} />
-			{peers.map((p, i) => (
-				<Video peer={p} key={i} />
-			))}
-			{streams.map((s, i) => (
-				<video
-					key={i}
-					playsInline
-					autoPlay
-					ref={vid => {
-						if (vid) {
-							vid.srcObject = s.stream;
-						}
-					}}
-				/>
-			))}
-			{/* <Video  /> */}
+			<div className="flex flex-wrap">
+				<video playsInline autoPlay ref={myVidRef} className="w-1/2" />
+				{peers.map((p, i) => (
+					<Video peer={p} key={i} />
+				))}
+				{streams.map((s, i) => (
+					<video
+						key={i}
+						className="w-1/2"
+						playsInline
+						autoPlay
+						ref={vid => {
+							if (vid) {
+								vid.srcObject = s.stream;
+							}
+						}}
+					/>
+				))}
+				{/* <Video  /> */}
+			</div>
 		</>
 	);
 };
