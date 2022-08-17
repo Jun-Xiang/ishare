@@ -38,14 +38,14 @@ const Post = ({ p, updatePost, commentsCount, removePostFromState }) => {
 		} else {
 			newPost = await likePost(p._id);
 		}
-		updatePost(newPost.post);
+		updatePost(newPost);
 	};
 
 	const handleDblClick = async _ => {
 		const found = p.likes.includes(user.id);
 		if (found) return;
 		const newPost = await likePost(p._id);
-		updatePost(newPost.post);
+		updatePost(newPost);
 	};
 
 	const openPost = _ => navigate(p._id);
